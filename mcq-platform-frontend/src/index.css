@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+
+
+@theme {
+  --color-primary: #2b2e33;
+  --color-secondary: #7b7f85;
+  --color-muted: #c1c4c8;
+  --color-surface: #f5f6f7;
+  
+  /* Light theme utilities */
+  --color-bg: #ffffff;
+  --color-card: #fafbfc;
+  --color-text: #2b2e33;
+  --color-text-muted: #7b7f85;
+}
+*{
+   font-family: "Montserrat", sans-serif;
+}
+body{
+  overflow-x: hidden;
+}

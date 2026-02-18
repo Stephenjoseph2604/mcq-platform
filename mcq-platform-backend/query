@@ -1,0 +1,161 @@
+create database mcq_platform_db;
+use mcq_platform_db;
+--  Queries to create tables
+CREATE TABLE departments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  code VARCHAR(20) UNIQUE NOT NULL,   -- CSE, MECH, ECE
+  name VARCHAR(100) NOT NULL           -- Computer Science, Mechanical
+);
+
+
+CREATE TABLE question_category (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(50) NOT NULL            -- English, Aptitude, Logical, Technical
+);
+CREATE TABLE users (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  mobile VARCHAR(15) NOT NULL,
+  department_id INT NOT NULL,
+  is_email_verified BOOLEAN DEFAULT FALSE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_users_department
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE admin (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE email_otp (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL,
+  otp VARCHAR(10) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE quiz (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  title VARCHAR(255) NOT NULL,
+  quiz_code VARCHAR(50) UNIQUE NOT NULL, -- MCQ2026
+  duration_minutes INT NOT NULL,
+  total_questions INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE questions (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  category_id INT NOT NULL,
+  department_id INT NULL,     -- must match departments.id
+  question_text TEXT NOT NULL,
+  option_a TEXT NOT NULL,
+  option_b TEXT NOT NULL,
+  option_c TEXT NOT NULL,
+  option_d TEXT NOT NULL,
+  correct_option CHAR(1) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_questions_category
+    FOREIGN KEY (category_id) REFERENCES question_category(id),
+
+  CONSTRAINT fk_questions_department
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE quiz_rule (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  quiz_id BIGINT NOT NULL,
+  rule_text TEXT NOT NULL,
+
+  CONSTRAINT fk_quiz_rule_quiz
+    FOREIGN KEY (quiz_id) REFERENCES quiz(id)
+);
+
+CREATE TABLE quiz_question_config (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  quiz_id BIGINT NOT NULL,
+  category_id INT NOT NULL,
+  department_id INT NULL,              -- only for technical
+  question_count INT NOT NULL,
+
+  CONSTRAINT fk_config_quiz
+    FOREIGN KEY (quiz_id) REFERENCES quiz(id),
+
+  CONSTRAINT fk_config_category
+    FOREIGN KEY (category_id) REFERENCES question_category(id),
+
+  CONSTRAINT fk_config_department
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE quiz_attempt (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  quiz_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NULL,
+  submitted BOOLEAN DEFAULT FALSE,
+  total_score INT DEFAULT 0,
+  percentage FLOAT DEFAULT 0,
+
+  CONSTRAINT fk_attempt_quiz
+    FOREIGN KEY (quiz_id) REFERENCES quiz(id),
+
+  CONSTRAINT fk_attempt_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+CREATE TABLE quiz_attempt_questions (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  attempt_id BIGINT NOT NULL,
+  question_id BIGINT NOT NULL,
+
+  CONSTRAINT fk_attempt_questions_attempt
+    FOREIGN KEY (attempt_id) REFERENCES quiz_attempt(id),
+
+  CONSTRAINT fk_attempt_questions_question
+    FOREIGN KEY (question_id) REFERENCES questions(id),
+
+  UNIQUE (attempt_id, question_id)
+);
+CREATE TABLE quiz_attempt_answers (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  attempt_id BIGINT NOT NULL,
+  question_id BIGINT NOT NULL,
+  selected_option CHAR(1) NOT NULL,
+  is_correct BOOLEAN,
+
+  CONSTRAINT fk_answers_attempt
+    FOREIGN KEY (attempt_id) REFERENCES quiz_attempt(id),
+
+  CONSTRAINT fk_answers_question
+    FOREIGN KEY (question_id) REFERENCES questions(id),
+
+  UNIQUE (attempt_id, question_id)
+);
+CREATE TABLE quiz_section_result (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  attempt_id BIGINT NOT NULL,
+  category_id INT NOT NULL,
+  total_questions INT NOT NULL,
+  correct_answers INT NOT NULL,
+  percentage FLOAT NOT NULL,
+
+  CONSTRAINT fk_section_attempt
+    FOREIGN KEY (attempt_id) REFERENCES quiz_attempt(id),
+
+  CONSTRAINT fk_section_category
+    FOREIGN KEY (category_id) REFERENCES question_category(id)
+);
+
+INSERT INTO question_category (name)
+VALUES ('English'), ('Aptitude'), ('Logical'), ('Technical');
+INSERT INTO departments (code, name)
+VALUES ('CSE','Computer Science'), ('MECH','Mechanical');

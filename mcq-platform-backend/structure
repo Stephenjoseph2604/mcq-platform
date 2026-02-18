@@ -1,0 +1,57 @@
+mcq-platform-backend/
+│
+├── src/
+│   ├── config/
+│   │   ├── db.js
+│   │   ├── jwt.js
+│   │   └── mail.js
+│   │
+│   ├── modules/
+|   |   |department/
+|   |   |   ├── department.controller.js
+|   |   |   ├── department.service.js
+|   |   |   └── department.routes.js
+|   |   |category/
+|   |   |   ├── category.controller.js
+|   |   |   ├── category.service.js
+|   |   |   └── category.routes.js
+│   │   ├── auth/
+│   │   │   ├── auth.controller.js
+│   │   │   ├── auth.service.js
+│   │   │   ├── auth.routes.js
+│   │   │   └── auth.validation.js
+│   │   │
+│   │   ├── admin/
+│   │   │   ├── admin.controller.js
+│   │   │   ├── admin.service.js
+│   │   │   └── admin.routes.js
+│   │   │
+│   │   ├── quiz/
+│   │   │   ├── quiz.controller.js
+│   │   │   ├── quiz.service.js
+│   │   │   ├── quiz.routes.js
+│   │   │   └── quiz.helper.js
+│   │   │
+│   │   ├── question/
+│   │   │   ├── question.controller.js
+│   │   │   ├── question.service.js
+│   │   │   └── question.routes.js
+│   │   │
+│   │   ├── attempt/
+│   │   │   ├── attempt.controller.js
+│   │   │   ├── attempt.service.js
+│   │   │   └── attempt.routes.js
+│   │   
+│   ├── middlewares/
+│   │   ├── auth.middleware.js
+│   │   └── admin.middleware.js
+│   │
+│   ├── utils/
+│   │   ├── response.js
+│   │   ├── time.js
+│   │   └── random.js
+│   │
+│   ├── app.js
+│   └── server.js
+│
+└── package.json
