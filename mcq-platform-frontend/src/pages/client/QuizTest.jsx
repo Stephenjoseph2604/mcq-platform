@@ -193,19 +193,56 @@ const QuizTest = () => {
   const questions = quizData.questions;
   const totalQuestions = questions.length;
 
-  // Update question status when answer changes
+  // 60 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(60 * 60); // 3600s
+
+  // Timer effect
   useEffect(() => {
-    const status = {};
-    questions.forEach((q) => {
-      const qid = q.id;
-      if (answers[qid]) {
-        status[qid] = "answered";
-      } else if (questionStatus[qid] === "review") {
-        status[qid] = "review";
-      }
-    });
-    setQuestionStatus(status);
-  }, [answers, questionStatus, questions]);
+    if (isSubmitted || timeLeft <= 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, isSubmitted]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Update question status when answer changes
+useEffect(() => {
+  const nextStatus = {};
+  questions.forEach((q) => {
+    const qid = q.id;
+    if (answers[qid]) {
+      nextStatus[qid] = "answered";
+    } else if (questionStatus[qid] === "review") {
+      nextStatus[qid] = "review";
+    }
+  });
+
+  // Only update state if the object changed
+  const hasChanged = Object.keys(nextStatus).some(
+    (qid) => nextStatus[qid] !== questionStatus[qid]
+  ) || Object.keys(questionStatus).some(
+    (qid) => !(qid in nextStatus)
+  );
+
+  if (hasChanged) {
+    setQuestionStatus(nextStatus);
+  }
+}, [answers, questionStatus, questions]);
+
 
   const handleOptionSelect = (questionId, option) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
@@ -230,10 +267,15 @@ const QuizTest = () => {
   const goReviewQuestion = useCallback(
     (questionId) => {
       const index = questions.findIndex((q) => q.id === questionId);
-      setCurrentQuestionIndex(index);
-      setShowSubmit(false);
+      const qid = questions[index].id;
+
+      // Only allow going back if the question is marked "review"
+      if (questionStatus[qid] === "review") {
+        setCurrentQuestionIndex(index);
+        setShowSubmit(false);
+      }
     },
-    [questions],
+    [questions, questionStatus],
   );
 
   const handleSubmit = () => {
@@ -270,23 +312,22 @@ const QuizTest = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent pt-25 px-4 sm:px-6 lg:px-8 relative">
       {/* Dot Grid Background */}
       <div
         className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, var(--color-muted) 1px, transparent 0),
-                           radial-gradient(circle at 25px 25px, var(--color-muted) 1px, transparent 0)`,
+                             radial-gradient(circle at 25px 25px, var(--color-muted) 1px, transparent 0)`,
           backgroundSize: "50px 50px",
         }}
       />
-
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8 h-screen lg:h-[80vh] items-stretch">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-7 pb-10 items-stretch">
         {/* Left: Question Area - RELATIVE HEIGHTS, PERFECT FIT */}
         <div className="flex-1 lg:max-w-5xl">
           <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl h-full flex flex-col">
-            {/* Header - 12% */}
-            <div className="flex-shrink-0 pb-4 lg:pb-6 h-[12%] min-h-[64px] lg:min-h-[80px] max-h-[80px]">
+            {/* Header - flexible but capped */}
+            <div className="flex-shrink-0 pb-4 lg:pb-6 min-h-[64px] lg:min-h-[80px] max-h-[80px]">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between h-full gap-3 lg:gap-0">
                 <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
                   <div className="w-9 h-9 lg:w-10 lg:h-10 bg-[var(--color-primary)]/20 border-2 border-[var(--color-primary)]/30 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -303,20 +344,20 @@ const QuizTest = () => {
                 </div>
                 <div className="text-xs lg:text-sm text-[var(--color-text-muted)] text-right flex-shrink-0 whitespace-nowrap">
                   <Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4 inline mr-1" />
-                  <span className="font-mono">14:30</span>
+                  <span className="font-mono">{formatTime(timeLeft)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Question Text - 18% with scroll */}
-            <div className="flex-shrink-0 h-[18%] min-h-[72px] lg:min-h-[88px] max-h-[100px] lg:max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1">
+            {/* Question Text - flexible with scroll */}
+            <div className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1">
               <h2 className="text-base lg:text-lg xl:text-xl font-bold text-[var(--color-text)] leading-relaxed px-1 -mt-1">
                 {currentQuestion.question_text}
               </h2>
             </div>
 
-            {/* Options - 60% FIXED 4 options */}
-            <div className="flex-1 h-[60%] min-h-[200px] lg:min-h-[280px] mb-3 lg:mb-6 space-y-1.5 lg:space-y-2.5 flex flex-col max-h-[60%] overflow-hidden">
+            {/* Options - take remaining space (no h-[60%] / max-h) */}
+            <div className="flex-1 min-h-[200px] lg:min-h-[250px] mb-3 lg:mb-6 space-y-1.5 lg:space-y-2.5 flex flex-col overflow-hidden">
               {[
                 { key: "a", label: "A", value: currentQuestion.option_a },
                 { key: "b", label: "B", value: currentQuestion.option_b },
@@ -325,7 +366,7 @@ const QuizTest = () => {
               ].map(({ key, label, value }, index) => (
                 <label
                   key={key}
-                  className="flex items-start p-2.5 lg:p-3.5 border border-[var(--color-muted)]/30 rounded-lg lg:rounded-xl hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5 cursor-pointer transition-all duration-200 group flex-1 h-[25%] min-h-[44px] lg:min-h-[60px] max-h-[25%]"
+                  className="flex items-start p-2.5 lg:p-3 border border-[var(--color-muted)]/30 rounded-lg lg:rounded-xl hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5 cursor-pointer transition-all duration-200 group flex-1 min-h-[44px] lg:min-h-[50px] max-h-[60px]"
                 >
                   <input
                     type="radio"
@@ -335,7 +376,7 @@ const QuizTest = () => {
                     onChange={() =>
                       handleOptionSelect(currentQuestion.id, label)
                     }
-                    className="w-4 h-4 lg:w-5 lg:h-5 mt-0.5 lg:mt-1 text-[var(--color-primary)] bg-white border-2 border-[var(--color-muted)]/50 focus:ring-[var(--color-primary)] focus:ring-2 rounded-full group-hover:border-[var(--color-primary)]/70 transition-all duration-200 mr-2.5 lg:mr-3 flex-shrink-0"
+                    className="w-4 h-4 lg:w-5 lg:h-5 mt-0.5 lg:mt-1 text-[var(--color-primary)] bg-white focus:ring-[var(--color-primary)] rounded-full group-hover:border-[var(--color-primary)]/70 transition-all duration-200 mr-2.5 lg:mr-3 flex-shrink-0"
                   />
                   <span className="text-sm lg:text-base font-medium text-[var(--color-text)] group-hover:text-[var(--color-primary)] leading-relaxed flex-1 min-w-0 truncate pt-0.5">
                     {label}. {value}
@@ -344,8 +385,8 @@ const QuizTest = () => {
               ))}
             </div>
 
-            {/* Buttons - 10% */}
-            <div className="flex-shrink-0 h-[10%] min-h-[56px] lg:min-h-[64px] pt-2 lg:pt-4 border-t border-[var(--color-muted)]/30">
+            {/* Buttons - fixed height at bottom */}
+            <div className="flex-shrink-0 min-h-[56px] lg:min-h-[64px] pt-2 lg:pt-4 border-t border-[var(--color-muted)]/30">
               <div className="flex gap-2 lg:gap-3 h-full px-1 -mx-0.5">
                 <button
                   onClick={markReviewLater}
@@ -380,10 +421,10 @@ const QuizTest = () => {
         </div>
 
         {/* Right: Compact Question Status Panel - 4 Column Grid */}
-        <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 h-fit lg:h-full">
-          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl max-h-[70vh] lg:h-full flex flex-col gap-3 lg:gap-4 sticky top-4 lg:top-8">
-            <div className="text-center mb-4 lg:mb-6">
-              <h3 className="text-base lg:text-lg font-bold text-[var(--color-text)] mb-1">
+        <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 h-full order-2 lg:order-1 mt-6 lg:mt-0 lg:sticky lg:top-4">
+          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-3 lg:p-4 shadow-xl lg:max-h-none flex flex-col gap-2 lg:gap-4">
+            <div className="text-center mb-3 lg:mb-4">
+              <h3 className="text-sm lg:text-base font-bold text-[var(--color-text)] mb-0.5">
                 Questions
               </h3>
               <p className="text-xs text-[var(--color-text-muted)]">
@@ -392,8 +433,8 @@ const QuizTest = () => {
             </div>
 
             {/* 4 Column Compact Question Grid */}
-            <div className="grid grid-cols-4 gap-1 lg:gap-2 flex-1 min-h-0 overflow-y-auto pr-1 -mr-1 max-h-64 lg:max-h-none">
-              {questions.map((q) => {
+            <div className="grid grid-cols-5 md:grid-cols-8 lg:grid-cols-5 gap-3 lg:gap-2">
+              {questions.map((q,i) => {
                 const status = questionStatus[q.id];
                 const isCurrent = q.id === currentQuestion.id;
 
@@ -401,49 +442,49 @@ const QuizTest = () => {
                   <button
                     key={q.id}
                     onClick={() => goReviewQuestion(q.id)}
-                    className={`aspect-square text-[10px] lg:text-xs font-bold flex items-center justify-center rounded-lg transition-all duration-200 p-1 lg:p-2 hover:scale-105 active:scale-95 ${
+                    className={`aspect-square text-[9px] lg:text-[10px] font-bold flex items-center justify-center rounded-md transition-all duration-200 p-0.5 lg:p-1 hover:scale-105 active:scale-95 ${
                       isCurrent
-                        ? "bg-[var(--color-primary)] text-white shadow-md ring-2 ring-[var(--color-primary)]/40 border border-[var(--color-primary)]"
+                        ? "bg-[var(--color-primary)] text-white shadow-sm ring-1 ring-[var(--color-primary)]/40 border border-[var(--color-primary)]"
                         : status === "answered"
-                          ? "bg-green-400/20 text-green-700 border border-green-400/40 hover:bg-green-400/30"
-                          : status === "review"
-                            ? "bg-yellow-400/20 text-yellow-700 border-2 border-yellow-400/50 hover:bg-yellow-400/40 animate-pulse"
-                            : "bg-gray-100/50 text-gray-600 border border-gray-200/50 hover:bg-gray-200/50"
+                        ? "bg-green-400/20 text-green-700 border border-green-400/40 hover:bg-green-400/30"
+                        : status === "review"
+                        ? "bg-yellow-400/20 text-yellow-700 border-2 border-yellow-400/50 hover:bg-yellow-400/40 animate-pulse"
+                        : "bg-gray-100/50 text-gray-600 border border-gray-200/50 hover:bg-gray-200/50"
                     }`}
                     title={`Question ${q.id}`}
                   >
-                    {q.id}
+                    {i+1}
                   </button>
                 );
               })}
             </div>
 
             {/* Compact Dynamic Summary */}
-            <div className="text-xs space-y-1.5 pt-3 lg:pt-4 border-t border-[var(--color-muted)]/30 mt-auto px-1">
-              <div className="flex justify-between items-center py-1">
+            <div className="text-xs space-y-1 pt-2 lg:pt-3 border-t border-[var(--color-muted)]/30 mt-auto px-1">
+              <div className="flex justify-between items-center py-0.5">
                 <span className="text-[var(--color-text-muted)] truncate">
                   Answered:
                 </span>
-                <span className="font-semibold text-green-600 px-1.5 py-0.5 bg-green-400/10 rounded-md text-[11px] lg:text-sm min-w-[24px] text-center">
+                <span className="font-semibold text-green-600 px-1 py-0.5 bg-green-400/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {Object.keys(answers).length}
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1">
+              <div className="flex justify-between items-center py-0.5">
                 <span className="text-[var(--color-text-muted)] truncate">
                   Review:
                 </span>
-                <span className="font-semibold text-yellow-600 px-1.5 py-0.5 bg-yellow-400/10 rounded-md text-[11px] lg:text-sm min-w-[24px] text-center">
+                <span className="font-semibold text-yellow-600 px-1 py-0.5 bg-yellow-400/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {
                     Object.values(questionStatus).filter((s) => s === "review")
                       .length
                   }
                 </span>
               </div>
-              <div className="flex justify-between items-center py-1">
+              <div className="flex justify-between items-center py-0.5">
                 <span className="text-[var(--color-text-muted)] truncate">
                   Remaining:
                 </span>
-                <span className="font-semibold text-[var(--color-text)] px-1.5 py-0.5 bg-gray-100/50 rounded-md text-[11px] lg:text-sm min-w-[24px] text-center">
+                <span className="font-semibold text-[var(--color-text)] px-1 py-0.5 bg-gray-100/50 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {totalQuestions -
                     Object.keys(answers).length -
                     Object.values(questionStatus).filter((s) => s === "review")
