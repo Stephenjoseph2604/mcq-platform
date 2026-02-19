@@ -1,15 +1,23 @@
 // AdminLayout.jsx
 import { Outlet } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
-import { SettingsPage } from "./SettingsPage";
+// import { SettingsPage } from "./SettingsPage";
+// import { AdminQuizPage } from "./AdminQuizPage";
+// import { LoadQuestions } from "./LoadQuestions";
+// import { AdminReport } from "./AdminReport";
+// import { AdminDashboard } from "./AdminDashboard";
 
 export const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-[var(--color-surface)] flex">
       <AdminSidebar />
       <main className="flex-1 lg:w-[80vw]  p-4  ">
-        <SettingsPage/>
-        {/* <Outlet /> */}
+        {/* <SettingsPage/>
+        <AdminQuizPage/>
+        <LoadQuestions/>
+        <AdminReport/>
+        <AdminDashboard/> */}
+        <Outlet />
       </main>
     </div>
   );

@@ -71,3 +71,32 @@ export const studentQuizReport = async (req, res) => {
     return error(res, err.message);
   }
 };
+
+
+export const allStudentsQuizReport = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+
+    if (!quizId) {
+      return error(res, "quizId is required");
+    }
+
+    const report = await quizService.getAllStudentsQuizReport(quizId);
+    return success(res, "All students quiz report fetched successfully", report);
+  } catch (err) {
+    console.error(err);
+    return error(res, err.message);
+  }
+};
+
+
+
+export const getAllQuizList = async (req, res) => {
+  try {
+    const quizzes = await quizService.getAllQuizzes();
+    return success(res, "Quizzes fetched successfully", quizzes);
+  } catch (err) {
+    console.error(err);
+    return error(res, "Failed to fetch quizzes");
+  }
+};

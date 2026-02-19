@@ -1,59 +1,63 @@
-// components/QuizPage.jsx - Fixed blinking + Categories tags
-import React from "react";
-import { Link } from "react-router-dom";
-import { Play, Clock, BookOpen, Tag } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Clock, 
+  BookOpen, 
+  Tag, 
+  Play, 
+  AlertCircle, 
+  CheckCircle, 
+  Loader2 
+} from 'lucide-react';
+import { quizAPI } from '../../services/api';
+import { isAuthenticated } from '../../utils/auth';
 
 const QuizPage = () => {
-  // Sample quizzes data with categories
-  const quizzes = [
-    {
-      id: 1,
-      title: "JavaScript Fundamentals",
-      duration: "30 min",
-      totalQuestions: 25,
-      categories: ["Technical", "Logical"],
-    },
-    {
-      id: 2,
-      title: "React Advanced Concepts",
-      duration: "45 min",
-      totalQuestions: 35,
-      categories: ["Technical", "English"],
-    },
-    {
-      id: 3,
-      title: "CSS Grid & Flexbox",
-      duration: "20 min",
-      totalQuestions: 20,
-      categories: ["Technical"],
-    },
-    {
-      id: 4,
-      title: "Aptitude Test",
-      duration: "40 min",
-      totalQuestions: 30,
-      categories: ["Aptitude", "Logical"],
-    },
-    {
-      id: 5,
-      title: "TypeScript Essentials",
-      duration: "35 min",
-      totalQuestions: 28,
-      categories: ["Technical", "Logical"],
-    },
-    {
-      id: 6,
-      title: "English Proficiency",
-      duration: "25 min",
-      totalQuestions: 22,
-      categories: ["English", "Aptitude"],
-    },
-  ];
+  const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchQuizzes = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await quizAPI.getQuizzes();
+        
+        if (response.data.success) {
+          setQuizzes(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch quizzes');
+        }
+      } catch (err) {
+        setError('Failed to load quizzes. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, [navigate]);
 
   const handleStartQuiz = (quizId) => {
     console.log(`Start Quiz ID: ${quizId}`);
-    // You will write your start quiz function here
+    navigate(`/quiz/${quizId}`);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[var(--color-primary)] mx-auto mb-4" />
+        <p className="text-xl text-[var(--color-text-muted)]">Loading quizzes...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)] pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -80,14 +84,40 @@ const QuizPage = () => {
           </p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="max-w-2xl mx-auto mb-12">
+            <div className="bg-red-50/80 border border-red-200/50 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
+              <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-[var(--color-text)] mb-1">Error</h3>
+                <p className="text-[var(--color-text-muted)]">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Quizzes */}
+        {quizzes.length === 0 && !loading && !error && (
+          <div className="text-center py-24">
+            <BookOpen className="h-24 w-24 text-[var(--color-muted)] mx-auto mb-8 opacity-50" />
+            <h2 className="text-3xl font-bold text-[var(--color-text)] mb-4">No quizzes available</h2>
+            <p className="text-xl text-[var(--color-text-muted)] max-w-md mx-auto">
+              Check back later for new quizzes
+            </p>
+          </div>
+        )}
+
         {/* Quizzes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {quizzes.map((quiz) => (
             <div
               key={quiz.id}
-              className="group bg-[var(--color-card)]  relative border border-[var(--color-muted)]/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden hover:border-[var(--color-primary)]/30"
+              className="group bg-[var(--color-card)] relative border border-[var(--color-muted)]/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden hover:border-[var(--color-primary)]/30"
             >
-                <div className="h-15 blur-lg w-15 rounded-full bg-[var(--color-primary)] absolute -top-5 -right-5" />
+              {/* Decorative Blob */}
+              <div className="h-15 w-15 blur-lg rounded-full bg-[var(--color-primary)] absolute -top-5 -right-5" />
+              
               {/* Quiz Card Content */}
               <div className="space-y-6">
                 {/* Title */}
@@ -109,12 +139,12 @@ const QuizPage = () => {
 
                 {/* Categories Tags */}
                 <div className="flex flex-wrap gap-2">
-                  {quiz.categories.map((category, index) => (
+                  {quiz.categories.slice(0, 4).map((category, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200"
+                      className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200 flex items-center gap-1"
                     >
-                      <Tag className="h-3 w-3 inline -ml-1 mr-1 align-middle" />
+                      <Tag className="h-3 w-3 inline -ml-1 mr-1 align-middle flex-shrink-0" />
                       {category}
                     </span>
                   ))}
@@ -123,11 +153,11 @@ const QuizPage = () => {
                 {/* Clean Start Quiz Button */}
                 <button
                   onClick={() => handleStartQuiz(quiz.id)}
-                  className="w-full h-14 bg-primary text-white rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl  flex items-center justify-center gap-3 active:scale-90 transition-all"
+                  className="w-full h-14 bg-primary text-white rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 active:scale-90 transition-all duration-200 group-hover:bg-[var(--color-secondary)]"
                 >
                   <span className="flex items-center gap-3">
                     Start Quiz
-                    <Play className="h-5 w-5" />
+                    <Play className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                   </span>
                 </button>
               </div>

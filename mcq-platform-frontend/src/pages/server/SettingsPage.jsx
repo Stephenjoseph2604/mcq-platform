@@ -9,6 +9,7 @@ import {
   Edit,
   UserPlus,
 } from "lucide-react";
+import AdminHeader from "../../components/AdminHeader";
 
 // Mock data (you’ll replace this with API calls)
 const initialCategories = [
@@ -173,10 +174,9 @@ export const SettingsPage = () => {
   };
 
   return (
-    <div className="  space-y-6 sm:space-y-8">
-      <h1 className="text-xl sm:text-2xl font-bold text-[var(--color-text)]">
-        Settings
-      </h1>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 min-h-screen">
+        {/* Header */}
+      <AdminHeader title={'Admin Settings'} des={'Manage categories, departments, and admin accounts'}/>  
 
    {/* Categories & Departments (responsive grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6  ">
