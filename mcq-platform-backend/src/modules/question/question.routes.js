@@ -1,5 +1,5 @@
 import express from "express";
-import { bulkCreateQuestions } from "./question.controller.js";
+import { bulkCreateQuestions, deleteQuestion, getQuestionById, updateQuestion } from "./question.controller.js";
 import { getCategoriesWithQuestionCount, getQuestionsByCategory } from "./question.controller.js";
 
 const router = express.Router();
@@ -8,4 +8,12 @@ const router = express.Router();
 router.post("/bulk", bulkCreateQuestions);
 router.get("/categories/count", getCategoriesWithQuestionCount);
 router.get("/category/:categoryId", getQuestionsByCategory);
-export default router;
+
+
+router.delete("/:id", deleteQuestion);
+
+router.put("/:id", updateQuestion);
+
+router.get("/:id", getQuestionById);
+
+export default router; 

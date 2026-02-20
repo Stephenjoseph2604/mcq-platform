@@ -140,9 +140,9 @@ export const LoadQuestions = () => {
       setLoadingQuestions(true);
       const response = await questionsAPI.getQuestionsByCategory(
         selectedCategory.id,
-        selectedCategory.id === 4 ? selectedDepartment.department_id : null
+        selectedCategory.id === 4 ? selectedDepartment.department_id : null,
       );
-      
+
       if (response.data.success) {
         setQuestions(response.data.data);
         setActiveTab("questions");
@@ -159,20 +159,57 @@ export const LoadQuestions = () => {
     setQuestions(newQuestions);
     setActiveTab("questions");
   };
+  // NEW: Update question via API
+  const handleUpdateQuestion = async (questionId, updatedFields) => {
+    try {
+      const response = await questionsAPI.updateQuestion(
+        questionId,
+        updatedFields,
+      );
+      if (response.data.success) {
+        // Update local state with API response or original data
+        setQuestions((prev) =>
+          prev.map((q) =>
+            q.id === questionId ? { ...q, ...updatedFields } : q,
+          ),
+        );
+        console.log("Question updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating question:", error);
+      alert("Failed to update question");
+    }
+  };
+
+  // NEW: Delete question via API
+  const handleDeleteQuestion = async (questionId) => {
+    try {
+      const response = await questionsAPI.deleteQuestion(questionId);
+      if (response.data.success) {
+        // Remove from local state
+        setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+        console.log("Question deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      alert("Failed to delete question");
+    }
+  };
 
   const handleClearAll = () => {
     setQuestions([]);
     setActiveTab("categories");
   };
 
-  const departments = selectedCategory?.id === 4 
-    ? selectedCategory.departments || [] 
-    : [];
+  const departments =
+    selectedCategory?.id === 4 ? selectedCategory.departments || [] : [];
 
   if (loadingCategories) {
     return (
       <div className="p-4 sm:p-6 lg:p-8 min-h-screen flex items-center justify-center">
-        <div className="text-lg text-[var(--color-text-muted)]">Loading categories...</div>
+        <div className="text-lg text-[var(--color-text-muted)]">
+          Loading categories...
+        </div>
       </div>
     );
   }
@@ -265,7 +302,7 @@ export const LoadQuestions = () => {
                     value={selectedDepartment?.department_id || ""}
                     onChange={(e) => {
                       const dept = category.departments.find(
-                        (d) => d.department_id === parseInt(e.target.value)
+                        (d) => d.department_id === parseInt(e.target.value),
                       );
                       setSelectedDepartment(dept);
                     }}
@@ -273,7 +310,10 @@ export const LoadQuestions = () => {
                   >
                     <option value="">Select Department</option>
                     {category.departments.map((dept) => (
-                      <option key={dept.department_id} value={dept.department_id}>
+                      <option
+                        key={dept.department_id}
+                        value={dept.department_id}
+                      >
                         {dept.department_name} ({dept.questionCount} Qs)
                       </option>
                     ))}
@@ -309,10 +349,12 @@ export const LoadQuestions = () => {
       )}
 
       {activeTab === "questions" && questions.length > 0 && (
-        <QuestionsList
+       <QuestionsList
           questions={questions}
           onClearAll={handleClearAll}
           onUpdateQuestions={setQuestions}
+          onApiUpdateQuestion={handleUpdateQuestion}
+          onApiDeleteQuestion={handleDeleteQuestion}
         />
       )}
     </div>

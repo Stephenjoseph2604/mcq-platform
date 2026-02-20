@@ -75,14 +75,69 @@ export const getCategoriesWithQuestionCount = async (req, res) => {
 export const getQuestionsByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
-    const { department_id } = req.body;
-
+    // department_id is OPTIONAL
+    const departmentId = req.query?.department_id;
+    console.log(departmentId)
     const data = await questionService.getQuestionsByCategory(
       categoryId,
-      department_id,
+      departmentId,
     );
 
     return success(res, "Questions fetched successfully", data);
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
+
+
+// controllers/question.controller.js
+export const deleteQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await questionService.deleteQuestionById(id);
+
+    if (!deleted) {
+      return error(res, "Question not found");
+    }
+
+    return success(res, "Question deleted successfully");
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
+
+
+export const updateQuestion = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updated = await questionService.updateQuestionById(id, req.body);
+
+    if (!updated) {
+      return error(res, "Question not found or no changes made");
+    }
+
+    return success(res, "Question updated successfully");
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
+
+export const getQuestionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const question = await questionService.getQuestionById(id);
+
+    if (!question) {
+      return error(res, "Question not found");
+    }
+
+    return success(res, "Question fetched successfully", question);
   } catch (err) {
     return error(res, err.message);
   }

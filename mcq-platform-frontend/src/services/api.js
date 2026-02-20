@@ -92,15 +92,19 @@ export const questionsAPI = {
     const config = {
       params: { category_id: categoryId }
     };
-    
+    console.log(departmentId);
     // For technical category, send department_id in body
-    if (departmentId) {
-      config.data = { department_id: departmentId };
-    }
+   
     
-    return api.post("/questions/category/" + categoryId, config.data || {});
+    return api.get(`/questions/category/${categoryId}`, { params: { department_id: departmentId } });
   },
+   // NEW: Update question (PATCH with partial fields)
+  updateQuestion: (questionId, updatedFields) => 
+    api.put(`/questions/${questionId}`, updatedFields),
   
+  // NEW: Delete question
+  deleteQuestion: (questionId) => 
+    api.delete(`/questions/${questionId}`),
   // Bulk load questions (you'll need this endpoint later)
   bulkLoadQuestions: (data) => api.post("/questions/bulk-load", data),
 };

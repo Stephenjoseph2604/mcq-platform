@@ -564,3 +564,58 @@ export const getAllQuizzes = async () => {
     categories: Array.from(quiz.categories.values()),
   }));
 };
+
+
+export const getAllQuizzesWithSubmissions = async () => {
+  const sql = `
+    SELECT 
+      q.id AS quiz_id,
+      q.title,
+      q.quiz_code,
+      q.duration_minutes,
+
+      c.id AS category_id,
+      c.name AS category_name,
+
+      (
+        SELECT COUNT(*)
+        FROM quiz_attempt qa
+        WHERE qa.quiz_id = q.id
+          AND qa.submitted = TRUE
+      ) AS total_submissions
+
+    FROM quiz q
+    LEFT JOIN quiz_question_config qc ON qc.quiz_id = q.id
+    LEFT JOIN question_category c ON c.id = qc.category_id
+    ORDER BY q.id
+  `;
+
+  const [rows] = await db.query(sql);
+
+  const quizMap = new Map();
+
+  for (const row of rows) {
+    if (!quizMap.has(row.quiz_id)) {
+      quizMap.set(row.quiz_id, {
+        id: row.quiz_id,
+        title: row.title,
+        quiz_code: row.quiz_code,
+        duration: `${row.duration_minutes} min`,
+        totalSubmissions: row.total_submissions,
+        categories: new Map(),
+      });
+    }
+
+    if (row.category_id) {
+      quizMap.get(row.quiz_id).categories.set(row.category_id, {
+        id: row.category_id,
+        name: row.category_name,
+      });
+    }
+  }
+
+  return Array.from(quizMap.values()).map((quiz) => ({
+    ...quiz,
+    categories: Array.from(quiz.categories.values()),
+  }));
+};

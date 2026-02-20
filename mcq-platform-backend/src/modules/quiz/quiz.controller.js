@@ -100,3 +100,13 @@ export const getAllQuizList = async (req, res) => {
     return error(res, "Failed to fetch quizzes");
   }
 };
+
+
+export const getAllQuizzesWithSubmissions = async (req, res) => {
+  try {
+    const data = await quizService.getAllQuizzesWithSubmissions();
+    return success(res, "Quizzes fetched successfully", data);
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
