@@ -107,7 +107,8 @@ const Register = () => {
         password: formData.password,
         otp: formData.otp
       };
-
+      console.log(registerData);
+      
       const response = await authAPI.verifyOTPRegister(registerData);
       
       if (response.data.success) {

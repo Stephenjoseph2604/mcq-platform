@@ -1,7 +1,6 @@
-import QuestionService from "./question.service.js";
 import pool from "../../config/db.js";
 import { success, error } from "../../utils/response.js";
-
+import * as questionService from "./question.service.js";
 export const bulkCreateQuestions = async (req, res) => {
   try {
     const { category_id, department_id, questions } = req.body;
@@ -14,7 +13,7 @@ export const bulkCreateQuestions = async (req, res) => {
     // 2️⃣ Fetch category name
     const [[category]] = await pool.execute(
       "SELECT name FROM question_category WHERE id = ?",
-      [category_id]
+      [category_id],
     );
 
     if (!category) {
@@ -27,7 +26,10 @@ export const bulkCreateQuestions = async (req, res) => {
     }
 
     if (category.name !== "Technical" && department_id) {
-      return error(res, "department_id must be null for non-technical categories");
+      return error(
+        res,
+        "department_id must be null for non-technical categories",
+      );
     }
 
     // 4️⃣ Validate each question
@@ -45,17 +47,43 @@ export const bulkCreateQuestions = async (req, res) => {
     }
 
     // 5️⃣ Bulk insert
-    const count = await QuestionService.bulkCreate({
+    const count = await questionService.bulkCreateQuestionsService({
       category_id,
       department_id: category.name === "Technical" ? department_id : null,
-      questions
+      questions,
     });
 
     return success(res, "Questions inserted", {
-      inserted: count
+      inserted: count,
     });
   } catch (err) {
     console.error(err);
     return error(res, "Failed to insert questions");
+  }
+};
+
+export const getCategoriesWithQuestionCount = async (req, res) => {
+  try {
+    console.log("Fetching categories with question count...");
+    const data = await questionService.getCategoriesWithQuestionCount();
+    return success(res, "Categories fetched successfully", data);
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
+export const getQuestionsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { department_id } = req.body;
+
+    const data = await questionService.getQuestionsByCategory(
+      categoryId,
+      department_id,
+    );
+
+    return success(res, "Questions fetched successfully", data);
+  } catch (err) {
+    return error(res, err.message);
   }
 };

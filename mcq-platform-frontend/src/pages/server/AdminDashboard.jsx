@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Users,
   BookOpen,
@@ -23,6 +23,8 @@ import {
 import { Calendar as ReactCalendar } from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { format } from "date-fns";
+import { getAdmin } from "../../utils/auth";
+import { adminAPI } from "../../services/api";
 
 const sampleData = [
   { name: "English", questions: 25, students: 45 },
@@ -41,22 +43,47 @@ export const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeTab, setActiveTab] = useState("overview");
 
-  const adminProfile = {
-    name: "Stephenjoseph M",
-    email: "stephen@admin.com",
+  const adminData = getAdmin();
+  
+  // Fallback if no admin data (shouldn't happen if AdminProtectedRoute works)
+  const adminProfile = adminData || {
+    name: "XXXXXXXX",
+    email: "xxxx@admin.com",
     role: "Super Admin",
-    createdAt: "2026-01-15",
-    avatar: "S",
+    created_at: "YYYY-MM-DD",
   };
+  const [stats, setStats] = useState({
+    categories: 0,
+    questions: 0,
+    departments: 0,
+    quizzes: 0,
+    students: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoadingStats(true);
+        const response = await adminAPI.getMeta();
+        
+        if (response.data.success) {
+          // ✅ Extract from response.data.message
+          setStats(response.data.message);
+          console.log('✅ Admin stats loaded:', response.data.message);
+        } else {
+          throw new Error(response.data.message || 'Failed to load stats');
+        }
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+        setError(err.message);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
 
-  const stats = {
-    categories: 4,
-    questions: 125,
-    departments: 3,
-    quizzes: 12,
-    students: 156,
-  };
-
+    fetchStats();
+  }, []);
   const formatDate = (date) => format(date, "MMM dd, yyyy");
 
   return (
@@ -89,7 +116,7 @@ export const AdminDashboard = () => {
             <div className="flex justify-center mb-6">
               <div className="relative">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl font-bold text-2xl text-white border-4 border-white/30">
-                  {adminProfile.avatar}
+                  {adminProfile.name.charAt(0)}
                 </div>
                 <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-md" />
               </div>
@@ -118,7 +145,7 @@ export const AdminDashboard = () => {
               <div className="flex justify-between py-2 px-4 bg-gray-50 rounded-xl">
                 <span className="text-gray-600 font-medium">Joined</span>
                 <span className="text-gray-900 font-medium">
-                  {adminProfile.createdAt}
+                  {adminProfile.created_at}
                 </span>
               </div>
             </div>

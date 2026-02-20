@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import bcrypt from 'bcryptjs';
 import db from '../../config/db.js';
+import { generateToken } from '../../config/jwt.js';
 
 export const createDefaultSuperAdmin = async () => {
   try {
@@ -53,4 +54,57 @@ export const createDefaultSuperAdmin = async () => {
   } catch (error) {
     console.error("❌ Failed to create SuperAdmin:", error.message);
   }
+};
+
+
+
+
+export const loginAdmin = async (email, password) => {
+  const [rows] = await db.query(
+    `SELECT *
+     FROM admin 
+     WHERE email = ?`,
+    [email]
+  );
+
+  if (rows.length === 0) {
+    throw { message: "Invalid email or password", statusCode: 401 };
+  }
+
+  const admin = rows[0];
+
+  const isMatch = await bcrypt.compare(password, admin.password_hash);
+  if (!isMatch) {
+    throw { message: "Invalid email or password", statusCode: 401 };
+  }
+
+  // JWT Payload
+  const tokenPayload = {
+    id: admin.id,
+    role: admin.role,
+    type: "ADMIN",
+  };
+
+  const token = generateToken(tokenPayload);
+
+  // Remove password_hash before response
+  const { password_hash, ...adminData } = admin;
+
+  return {
+    token,
+    admin: adminData,
+  };
+};
+
+export const fetchAdminMetaData = async () => {
+  const [rows] = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM question_category) AS categories,
+      (SELECT COUNT(*) FROM questions) AS questions,
+      (SELECT COUNT(*) FROM departments) AS departments,
+      (SELECT COUNT(*) FROM quiz) AS quizzes,
+      (SELECT COUNT(*) FROM users) AS students
+  `);
+
+  return rows[0];
 };

@@ -15,6 +15,10 @@ import { StudentsManagement } from "./pages/server/StudentsManagement";
 import Home from "./pages/client/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./components/NotFound";
+import QuizTest from "./pages/client/QuizTest";
+import AdminLogin from "./pages/server/AdminLogin";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import { LoadQuestions } from "./pages/server/LoadQuestions";
 
 const App = () => {
   return (
@@ -24,19 +28,35 @@ const App = () => {
       <QuizTest/> */}
       <Routes>
         <Route path="/admin/*" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route
+            path="dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+               </AdminProtectedRoute>
+            }
+          />
           <Route path="students" element={<StudentsManagement />} />
           <Route path="quiz" element={<AdminQuizPage />} />
+          <Route path="loadquestions" element={<LoadQuestions />} />
           <Route path="reports" element={<AdminReport />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
+        <Route
+          path="/quiz/:encryptedQuizId"
+          element={
+            <ProtectedRoute>
+              <QuizTest />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/" element={<Navbar />}>
           <Route
-            path="/"
+            index
             element={
               <ProtectedRoute>
                 <Home />

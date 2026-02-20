@@ -21,3 +21,39 @@ export const logout = () => {
 export const getToken = () => {
   return localStorage.getItem('mcqtoken');
 };
+
+//  Check if admin is authenticated
+export const isAdminAuthenticated = () => {
+  const token = localStorage.getItem('mcqadmintoken');
+  return !!token;
+};
+
+//  Get admin data
+export const getAdmin = () => {
+  const admin = localStorage.getItem('mcqadmin');
+  return admin ? JSON.parse(admin) : null;
+};
+
+//  Admin logout function
+export const adminLogout = () => {
+  localStorage.removeItem('mcqadmintoken');
+  localStorage.removeItem('mcqadmin');
+  window.location.href = '/admin/login';
+};
+
+// : Get admin token for API headers
+export const getAdminToken = () => {
+  return localStorage.getItem('mcqadmintoken');
+};
+
+// Check if either student OR admin is logged in
+export const isAnyAuthenticated = () => {
+  return isAuthenticated() || isAdminAuthenticated();
+};
+
+//  Get current user type
+export const getUserType = () => {
+  if (isAdminAuthenticated()) return 'admin';
+  if (isAuthenticated()) return 'student';
+  return null;
+};

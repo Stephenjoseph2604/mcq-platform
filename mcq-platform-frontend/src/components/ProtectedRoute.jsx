@@ -1,15 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { isAuthenticated } from '../utils/auth';
+import { Navigate, useLocation } from "react-router-dom";
+import { isAuthenticated } from "../utils/auth";
 
 const ProtectedRoute = ({ children }) => {
-  const auth = isAuthenticated();
+  const location = useLocation();
+  const isAuth = isAuthenticated();
 
-  if (!auth) {
-    return <Navigate to="/login" replace />;
+  if (!isAuth) {
+     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return children; // ✅ Directly renders the child component
+  return children;
 };
 
 export default ProtectedRoute;

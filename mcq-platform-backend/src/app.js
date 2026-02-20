@@ -6,12 +6,14 @@ import questionRoutes from "./modules/question/question.routes.js";
 import attemptRoutes from "./modules/attempt/attempt.routes.js";
 import quizRoutes from "./modules/quiz/quiz.routes.js";
 import studentRoutes from "./modules/student/student.routes.js";
+import adminRoutes from "./modules/admin/admin.routes.js";
 import cors from "./config/cors.js";
 const app = express();
 app.use(cors);
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/auth/admin", adminRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/questions", questionRoutes);

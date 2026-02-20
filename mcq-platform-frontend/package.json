@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.5",
+    "cryptojs": "^2.5.3",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.1",
     "lucide-react": "^0.574.0",

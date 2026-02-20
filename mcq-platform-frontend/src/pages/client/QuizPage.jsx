@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { quizAPI } from '../../services/api';
 import { isAuthenticated } from '../../utils/auth';
+import { encryptId } from '../../utils/encryption';
 
 const QuizPage = () => {
   const navigate = useNavigate();
@@ -19,11 +20,6 @@ const QuizPage = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/login');
-      return;
-    }
-
     const fetchQuizzes = async () => {
       try {
         setLoading(true);
@@ -45,10 +41,11 @@ const QuizPage = () => {
     fetchQuizzes();
   }, [navigate]);
 
-  const handleStartQuiz = (quizId) => {
-    console.log(`Start Quiz ID: ${quizId}`);
-    navigate(`/quiz/${quizId}`);
-  };
+const handleStartQuiz = (quizId) => {
+  console.log(`Start Quiz ID: ${quizId}`);
+  const encryptedQuizId = encryptId(quizId);
+  navigate(`/quiz/${encryptedQuizId}`);
+};
 
   if (loading) {
     return (
@@ -145,7 +142,7 @@ const QuizPage = () => {
                       className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200 flex items-center gap-1"
                     >
                       <Tag className="h-3 w-3 inline -ml-1 mr-1 align-middle flex-shrink-0" />
-                      {category}
+                      {category.name}
                     </span>
                   ))}
                 </div>

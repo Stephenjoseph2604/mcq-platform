@@ -6,12 +6,14 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  FileQuestionMark,
 } from "lucide-react";
 
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
   { name: "Students", icon: Users, href: "/admin/students" },
   { name: "Quiz", icon: BookOpen, href: "/admin/quiz" },
+  { name: "Load Questions", icon: FileQuestionMark, href: "/admin/loadquestions" },
   { name: "Reports", icon: BarChart3, href: "/admin/reports" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];

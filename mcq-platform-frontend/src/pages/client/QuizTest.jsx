@@ -12,193 +12,298 @@ import {
   X,
   Book,
   Play,
+  ShieldCheck,
 } from "lucide-react";
+import { decryptId } from "../../utils/encryption";
+import { quizAPI } from "../../services/api";
+import { useNavigate, useParams } from "react-router-dom";
+import { getUser } from "../../utils/auth";
 
-const quizData = {
-  attemptId: 3,
-  questions: [
-    {
-      id: 1,
-      question_text: "What is JVM?",
-      option_a: "Java Virtual Machine",
-      option_b: "Java Variable Model",
-      option_c: "Joint Virtual Method",
-      option_d: "None of the above",
-    },
-    {
-      id: 3,
-      question_text: "Choose the correct sentence.",
-      option_a: "She don't like coffee.",
-      option_b: "She doesn't like coffee.",
-      option_c: "She didn't likes coffee.",
-      option_d: "She not like coffee.",
-    },
-    {
-      id: 5,
-      question_text: "Choose the correct article: ___ honest man.",
-      option_a: "A",
-      option_b: "An",
-      option_c: "The",
-      option_d: "No article",
-    },
-    {
-      id: 7,
-      question_text: "Choose the correct sentence in indirect speech.",
-      option_a: "He said that he is busy.",
-      option_b: "He said that he was busy.",
-      option_c: "He says that he was busy.",
-      option_d: "He said that I am busy.",
-    },
-    {
-      id: 10,
-      question_text: "Find the correct spelling.",
-      option_a: "Definately",
-      option_b: "Definitly",
-      option_c: "Definitely",
-      option_d: "Definetely",
-    },
-    {
-      id: 11,
-      question_text:
-        "Choose the correct conjunction: I was tired ___ I continued working.",
-      option_a: "because",
-      option_b: "but",
-      option_c: "so",
-      option_d: "and",
-    },
-    {
-      id: 15,
-      question_text: "Which language is used for Android app development?",
-      option_a: "Python",
-      option_b: "Swift",
-      option_c: "Java",
-      option_d: "Ruby",
-    },
-    {
-      id: 18,
-      question_text: "Which keyword is used to inherit a class in Java?",
-      option_a: "this",
-      option_b: "extends",
-      option_c: "implements",
-      option_d: "super",
-    },
-    {
-      id: 20,
-      question_text: "What does HTML stand for?",
-      option_a: "High Text Machine Language",
-      option_b: "Hyper Text Markup Language",
-      option_c: "Hyper Transfer Markup Language",
-      option_d: "Home Tool Markup Language",
-    },
-    {
-      id: 21,
-      question_text: "Which protocol is used to send emails?",
-      option_a: "FTP",
-      option_b: "HTTP",
-      option_c: "SMTP",
-      option_d: "SNMP",
-    },
-    {
-      id: 23,
-      question_text: "What is 20% of 250?",
-      option_a: "40",
-      option_b: "45",
-      option_c: "50",
-      option_d: "60",
-    },
-    {
-      id: 26,
-      question_text:
-        "If the cost price is 200 and selling price is 240, find the profit percentage.",
-      option_a: "10%",
-      option_b: "15%",
-      option_c: "20%",
-      option_d: "25%",
-    },
-    {
-      id: 28,
-      question_text:
-        "A can do a job in 10 days. B can do it in 20 days. How long together?",
-      option_a: "6.67 days",
-      option_b: "7 days",
-      option_c: "8 days",
-      option_d: "10 days",
-    },
-    {
-      id: 29,
-      question_text: "What is the square root of 144?",
-      option_a: "10",
-      option_b: "11",
-      option_c: "12",
-      option_d: "13",
-    },
-    {
-      id: 30,
-      question_text: "Simple interest on 1000 at 10% for 2 years is:",
-      option_a: "100",
-      option_b: "150",
-      option_c: "200",
-      option_d: "250",
-    },
-    {
-      id: 33,
-      question_text: "Find the next number in the series: 2, 4, 8, 16, ?",
-      option_a: "18",
-      option_b: "24",
-      option_c: "32",
-      option_d: "64",
-    },
-    {
-      id: 35,
-      question_text: "If all cats are animals and some animals are wild, then:",
-      option_a: "All cats are wild",
-      option_b: "Some cats may be wild",
-      option_c: "No cats are wild",
-      option_d: "All animals are cats",
-    },
-    {
-      id: 38,
-      question_text: "Which number is missing: 3, 6, 9, ?, 15",
-      option_a: "10",
-      option_b: "11",
-      option_c: "12",
-      option_d: "13",
-    },
-    {
-      id: 40,
-      question_text: "If yesterday was Monday, what day is tomorrow?",
-      option_a: "Tuesday",
-      option_b: "Wednesday",
-      option_c: "Thursday",
-      option_d: "Friday",
-    },
-    {
-      id: 42,
-      question_text: "Which is the mirror image of 'b'?",
-      option_a: "d",
-      option_b: "p",
-      option_c: "q",
-      option_d: "b",
-    },
-  ],
-};
+// const quizData = {
+//   attemptId: 3,
+//   questions: [
+//     {
+//       id: 1,
+//       question_text: "What is JVM?",
+//       option_a: "Java Virtual Machine",
+//       option_b: "Java Variable Model",
+//       option_c: "Joint Virtual Method",
+//       option_d: "None of the above",
+//     },
+//     {
+//       id: 3,
+//       question_text: "Choose the correct sentence.",
+//       option_a: "She don't like coffee.",
+//       option_b: "She doesn't like coffee.",
+//       option_c: "She didn't likes coffee.",
+//       option_d: "She not like coffee.",
+//     },
+//     {
+//       id: 5,
+//       question_text: "Choose the correct article: ___ honest man.",
+//       option_a: "A",
+//       option_b: "An",
+//       option_c: "The",
+//       option_d: "No article",
+//     },
+//     {
+//       id: 7,
+//       question_text: "Choose the correct sentence in indirect speech.",
+//       option_a: "He said that he is busy.",
+//       option_b: "He said that he was busy.",
+//       option_c: "He says that he was busy.",
+//       option_d: "He said that I am busy.",
+//     },
+//     {
+//       id: 10,
+//       question_text: "Find the correct spelling.",
+//       option_a: "Definately",
+//       option_b: "Definitly",
+//       option_c: "Definitely",
+//       option_d: "Definetely",
+//     },
+//     {
+//       id: 11,
+//       question_text:
+//         "Choose the correct conjunction: I was tired ___ I continued working.",
+//       option_a: "because",
+//       option_b: "but",
+//       option_c: "so",
+//       option_d: "and",
+//     },
+//     {
+//       id: 15,
+//       question_text: "Which language is used for Android app development?",
+//       option_a: "Python",
+//       option_b: "Swift",
+//       option_c: "Java",
+//       option_d: "Ruby",
+//     },
+//     {
+//       id: 18,
+//       question_text: "Which keyword is used to inherit a class in Java?",
+//       option_a: "this",
+//       option_b: "extends",
+//       option_c: "implements",
+//       option_d: "super",
+//     },
+//     {
+//       id: 20,
+//       question_text: "What does HTML stand for?",
+//       option_a: "High Text Machine Language",
+//       option_b: "Hyper Text Markup Language",
+//       option_c: "Hyper Transfer Markup Language",
+//       option_d: "Home Tool Markup Language",
+//     },
+//     {
+//       id: 21,
+//       question_text: "Which protocol is used to send emails?",
+//       option_a: "FTP",
+//       option_b: "HTTP",
+//       option_c: "SMTP",
+//       option_d: "SNMP",
+//     },
+//     {
+//       id: 23,
+//       question_text: "What is 20% of 250?",
+//       option_a: "40",
+//       option_b: "45",
+//       option_c: "50",
+//       option_d: "60",
+//     },
+//     {
+//       id: 26,
+//       question_text:
+//         "If the cost price is 200 and selling price is 240, find the profit percentage.",
+//       option_a: "10%",
+//       option_b: "15%",
+//       option_c: "20%",
+//       option_d: "25%",
+//     },
+//     {
+//       id: 28,
+//       question_text:
+//         "A can do a job in 10 days. B can do it in 20 days. How long together?",
+//       option_a: "6.67 days",
+//       option_b: "7 days",
+//       option_c: "8 days",
+//       option_d: "10 days",
+//     },
+//     {
+//       id: 29,
+//       question_text: "What is the square root of 144?",
+//       option_a: "10",
+//       option_b: "11",
+//       option_c: "12",
+//       option_d: "13",
+//     },
+//     {
+//       id: 30,
+//       question_text: "Simple interest on 1000 at 10% for 2 years is:",
+//       option_a: "100",
+//       option_b: "150",
+//       option_c: "200",
+//       option_d: "250",
+//     },
+//     {
+//       id: 33,
+//       question_text: "Find the next number in the series: 2, 4, 8, 16, ?",
+//       option_a: "18",
+//       option_b: "24",
+//       option_c: "32",
+//       option_d: "64",
+//     },
+//     {
+//       id: 35,
+//       question_text: "If all cats are animals and some animals are wild, then:",
+//       option_a: "All cats are wild",
+//       option_b: "Some cats may be wild",
+//       option_c: "No cats are wild",
+//       option_d: "All animals are cats",
+//     },
+//     {
+//       id: 38,
+//       question_text: "Which number is missing: 3, 6, 9, ?, 15",
+//       option_a: "10",
+//       option_b: "11",
+//       option_c: "12",
+//       option_d: "13",
+//     },
+//     {
+//       id: 40,
+//       question_text: "If yesterday was Monday, what day is tomorrow?",
+//       option_a: "Tuesday",
+//       option_b: "Wednesday",
+//       option_c: "Thursday",
+//       option_d: "Friday",
+//     },
+//     {
+//       id: 42,
+//       question_text: "Which is the mirror image of 'b'?",
+//       option_a: "d",
+//       option_b: "p",
+//       option_c: "q",
+//       option_d: "b",
+//     },
+//   ],
+// };
 
 const QuizTest = () => {
+  const { encryptedQuizId } = useParams();
+  const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [questionStatus, setQuestionStatus] = useState({});
   const [showSubmit, setShowSubmit] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [quizAlreadySubmitted, setQuizAlreadySubmitted] = useState(false);
+  const navigate = useNavigate();
 
-  const questions = quizData.questions;
+  const questions = quizData?.questions || [];
   const totalQuestions = questions.length;
+  const attemptId = quizData?.attemptId;
 
-  // 60 minutes in seconds
-  const [timeLeft, setTimeLeft] = useState(60 * 60); // 3600s
-
-  // Timer effect
+  // Timer using server-provided time
+  const [timeLeft, setTimeLeft] = useState(0);
+  // ✅ ADD THESE 3 NEW USE EFFECTS (after your initQuiz useEffect)
   useEffect(() => {
-    if (isSubmitted || timeLeft <= 0) return;
+    const savedAnswers = localStorage.getItem(`quiz_answers_${attemptId}`);
+    if (savedAnswers) {
+      try {
+        setAnswers(JSON.parse(savedAnswers));
+      } catch (e) {
+        console.error("Failed to load saved answers");
+      }
+    }
+  }, [attemptId]);
+
+  useEffect(() => {
+    const savedStatus = localStorage.getItem(`quiz_status_${attemptId}`);
+    if (savedStatus) {
+      try {
+        setQuestionStatus(JSON.parse(savedStatus));
+      } catch (e) {
+        console.error("Failed to load saved status");
+      }
+    }
+  }, [attemptId]);
+
+  useEffect(() => {
+    if (attemptId && !isSubmitted) {
+      localStorage.setItem(
+        `quiz_answers_${attemptId}`,
+        JSON.stringify(answers),
+      );
+      localStorage.setItem(
+        `quiz_status_${attemptId}`,
+        JSON.stringify(questionStatus),
+      );
+    }
+  }, [answers, questionStatus, attemptId, isSubmitted]);
+
+  // Decrypt quiz ID and fetch quiz data
+  useEffect(() => {
+    const initQuiz = async () => {
+      try {
+        setLoading(true);
+        const quizId = decryptId(encryptedQuizId);
+
+        if (!quizId) {
+          throw new Error("Invalid quiz ID");
+        }
+
+        const user = getUser();
+        if (!user?.id) {
+          throw new Error("Student ID not found. Please login again.");
+        }
+
+        console.log(`Starting quiz ${quizId} for student ${user.id}`);
+
+        const response = await quizAPI.startQuiz(quizId, user.id);
+        console.log(response);
+        if (response.data.data.alreadySubmitted) {
+          setQuizAlreadySubmitted(true);
+          return;
+        }
+        // ✅ HANDLE ALREADY SUBMITTED CASE
+        if (!response.data.success) {
+          if (
+            response.data.message === "Invalid or already submitted attempt"
+          ) {
+            setError("Quiz already submitted");
+            setLoading(false);
+            return; // Show "already submitted" UI
+          }
+          throw new Error(response.data.message || "Failed to start quiz");
+        }
+        if (response.data.success) {
+          setQuizData(response.data.data);
+          setQuestionStatus({}); // Reset status
+        } else {
+          throw new Error(response.data.message || "Failed to start quiz");
+        }
+      } catch (err) {
+        console.error("Quiz init error:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initQuiz();
+  }, [encryptedQuizId]);
+
+  useEffect(() => {
+    if (quizData?.remainingTimeSeconds) {
+      console.log(`🎯 Backend timer set: ${quizData.remainingTimeSeconds}s`);
+      setTimeLeft(quizData.remainingTimeSeconds); // Sets 494!
+    }
+  }, [quizData?.remainingTimeSeconds]);
+
+  useEffect(() => {
+    if (!quizData || isSubmitted || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -211,7 +316,7 @@ const QuizTest = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isSubmitted]);
+  }, [timeLeft, isSubmitted, quizData]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -220,29 +325,27 @@ const QuizTest = () => {
   };
 
   // Update question status when answer changes
-useEffect(() => {
-  const nextStatus = {};
-  questions.forEach((q) => {
-    const qid = q.id;
-    if (answers[qid]) {
-      nextStatus[qid] = "answered";
-    } else if (questionStatus[qid] === "review") {
-      nextStatus[qid] = "review";
+  useEffect(() => {
+    const nextStatus = {};
+    questions.forEach((q) => {
+      const qid = q.id;
+      if (answers[qid]) {
+        nextStatus[qid] = "answered";
+      } else if (questionStatus[qid] === "review") {
+        nextStatus[qid] = "review";
+      }
+    });
+
+    // Only update state if the object changed
+    const hasChanged =
+      Object.keys(nextStatus).some(
+        (qid) => nextStatus[qid] !== questionStatus[qid],
+      ) || Object.keys(questionStatus).some((qid) => !(qid in nextStatus));
+
+    if (hasChanged) {
+      setQuestionStatus(nextStatus);
     }
-  });
-
-  // Only update state if the object changed
-  const hasChanged = Object.keys(nextStatus).some(
-    (qid) => nextStatus[qid] !== questionStatus[qid]
-  ) || Object.keys(questionStatus).some(
-    (qid) => !(qid in nextStatus)
-  );
-
-  if (hasChanged) {
-    setQuestionStatus(nextStatus);
-  }
-}, [answers, questionStatus, questions]);
-
+  }, [answers, questionStatus, questions]);
 
   const handleOptionSelect = (questionId, option) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
@@ -257,42 +360,145 @@ useEffect(() => {
   };
 
   const goNext = useCallback(() => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    } else {
-      setShowSubmit(true);
+    let nextIndex = currentQuestionIndex + 1;
+
+    while (nextIndex < totalQuestions) {
+      const nextQid = questions[nextIndex].id;
+      if (!answers[nextQid]) {
+        setCurrentQuestionIndex(nextIndex);
+        setShowSubmit(false);
+        return;
+      }
+      nextIndex++;
     }
-  }, [currentQuestionIndex, totalQuestions]);
+
+    setShowSubmit(true);
+  }, [currentQuestionIndex, totalQuestions, questions, answers]);
 
   const goReviewQuestion = useCallback(
     (questionId) => {
       const index = questions.findIndex((q) => q.id === questionId);
+      if (index === -1) return;
+
       const qid = questions[index].id;
 
-      // Only allow going back if the question is marked "review"
-      if (questionStatus[qid] === "review") {
+      // ✅ FIXED: ONLY REVIEW QUESTIONS ALLOWED (yellow dots only!)
+      const isReview = questionStatus[qid] === "review";
+
+      if (isReview) {
         setCurrentQuestionIndex(index);
         setShowSubmit(false);
+        console.log(`✅ Navigated to review Q${questionId}`);
+      } else {
+        console.log(`❌ BLOCKED Q${questionId}: Not a review question`);
       }
     },
     [questions, questionStatus],
-  );
-
-  const handleSubmit = () => {
-    const submitData = {
-      attempt_id: quizData.attemptId,
-      answers: Object.entries(answers).map(([questionId, selectedOption]) => ({
-        questionId: parseInt(questionId),
-        selectedOption,
-      })),
-    };
-    console.log("SUBMIT JSON:", JSON.stringify(submitData, null, 2));
-    setIsSubmitted(true);
-  };
+  ); // ✅ NO answers dependency
 
   const currentQuestion = questions[currentQuestionIndex];
-  const selectedOption = answers[currentQuestion?.id];
+  const selectedOption = currentQuestion?.id
+    ? answers[currentQuestion.id]
+    : null;
 
+  const handleSubmit = async () => {
+    if (!attemptId) {
+      toast.error("Invalid attempt ID");
+      return;
+    }
+
+    try {
+      setIsSubmitted(true); // Optimistic update - disable UI immediately
+
+      const submitData = {
+        attempt_id: attemptId,
+        answers: Object.entries(answers).map(
+          ([questionId, selectedOption]) => ({
+            questionId: parseInt(questionId),
+            selectedOption,
+          }),
+        ),
+      };
+
+      console.log("SUBMIT JSON:", JSON.stringify(submitData, null, 2));
+
+      // ✅ CALL SUBMIT API
+      const response = await quizAPI.submitQuiz(submitData);
+
+      if (response.data.success) {
+        console.log("✅ Submit response:", response.data);
+        // Optionally navigate to results page
+        // navigate(`/quiz/${encryptedQuizId}/results`);
+      } else {
+        throw new Error(response.data.message || "Submit failed");
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error(error.response?.data?.message || "Failed to submit quiz");
+      setIsSubmitted(false); // Re-enable UI on error
+    }
+  };
+
+  // ✅ NEW: Already submitted UI
+  if (quizAlreadySubmitted) {
+    return (
+      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
+        <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
+          <div className="w-24 h-24 bg-yellow-500/20 border-4 border-yellow-500/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <ShieldCheck className="h-12 w-12 text-yellow-500" />
+          </div>
+          <h1 className="text-3xl font-bold text-[var(--color-text)] mb-4">
+            Quiz Already Submitted
+          </h1>
+          <p className="text-[var(--color-text-muted)] mb-8 text-lg">
+            You've already completed this quiz.
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            View Quizzes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
+  //       <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
+  //         <p className="text-[var(--color-text)]">Loading quiz...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+  // Error state
+  if (error || !quizData) {
+    return (
+      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
+        <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
+          <div className="w-24 h-24 bg-red-500/20 border-4 border-red-500/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <div className="text-red-500">!</div>
+          </div>
+          <h1 className="text-2xl font-bold text-[var(--color-text)] mb-4">
+            Error
+          </h1>
+          <p className="text-[var(--color-text-muted)] mb-8">
+            {error || "Quiz not found"}
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary)]/90"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
@@ -306,11 +512,19 @@ useEffect(() => {
           <p className="text-[var(--color-text-muted)] mb-8">
             Check your console for submitted answers.
           </p>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            Go Back to Quizzes
+          </button>
         </div>
       </div>
     );
   }
-
+  if (!quizData || !currentQuestion) {
+    return <div>Loading quiz...</div>; // Or your loading UI
+  }
   return (
     <div className="min-h-screen bg-transparent pt-25 px-4 sm:px-6 lg:px-8 relative">
       {/* Dot Grid Background */}
@@ -351,8 +565,8 @@ useEffect(() => {
 
             {/* Question Text - flexible with scroll */}
             <div className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1">
-              <h2 className="text-base lg:text-lg xl:text-xl font-bold text-[var(--color-text)] leading-relaxed px-1 -mt-1">
-                {currentQuestion.question_text}
+              <h2 className="text-base lg:text-lg xl:text-xl font-bold text-[var(--color-text)] leading-relaxed px-1 -mt-1 min-h-[1.5rem]">
+                {currentQuestion?.question_text || "Loading question..."}
               </h2>
             </div>
 
@@ -434,7 +648,7 @@ useEffect(() => {
 
             {/* 4 Column Compact Question Grid */}
             <div className="grid grid-cols-5 md:grid-cols-8 lg:grid-cols-5 gap-3 lg:gap-2">
-              {questions.map((q,i) => {
+              {questions.map((q, i) => {
                 const status = questionStatus[q.id];
                 const isCurrent = q.id === currentQuestion.id;
 
@@ -446,14 +660,14 @@ useEffect(() => {
                       isCurrent
                         ? "bg-[var(--color-primary)] text-white shadow-sm ring-1 ring-[var(--color-primary)]/40 border border-[var(--color-primary)]"
                         : status === "answered"
-                        ? "bg-green-400/20 text-green-700 border border-green-400/40 hover:bg-green-400/30"
-                        : status === "review"
-                        ? "bg-yellow-400/20 text-yellow-700 border-2 border-yellow-400/50 hover:bg-yellow-400/40 animate-pulse"
-                        : "bg-gray-100/50 text-gray-600 border border-gray-200/50 hover:bg-gray-200/50"
+                          ? "bg-green-400/20 text-green-700 border border-green-400/40 hover:bg-green-400/30"
+                          : status === "review"
+                            ? "bg-yellow-400/20 text-yellow-700 border-2 border-yellow-400/50 hover:bg-yellow-400/40 animate-pulse"
+                            : "bg-gray-100/50 text-gray-600 border border-gray-200/50 hover:bg-gray-200/50"
                     }`}
                     title={`Question ${q.id}`}
                   >
-                    {i+1}
+                    {i + 1}
                   </button>
                 );
               })}

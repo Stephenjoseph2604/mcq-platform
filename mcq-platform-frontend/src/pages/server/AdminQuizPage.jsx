@@ -1,5 +1,5 @@
 // QuizPage.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Edit3,
@@ -10,34 +10,25 @@ import {
   BookPlus,
 } from "lucide-react";
 import AdminHeader from "../../components/AdminHeader";
+import { quizAPI } from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
-const categories = ["English", "Aptitude", "Logical", "Technical"];
+// const categories = ["English", "Aptitude", "Logical", "Technical"];
 
 export const AdminQuizPage = () => {
-  const [quizzes, setQuizzes] = useState([
-    {
-      id: 1,
-      title: "MCQ Placement Test",
-      quiz_code: "MCQ2026",
-      duration_minutes: 60,
-      totalQuestions: 50,
-      categories: ["English", "Aptitude", "Logical", "Technical"],
-    },
-    {
-      id: 2,
-      title: "Technical Interview Prep",
-      quiz_code: "TECH2026",
-      duration_minutes: 45,
-      totalQuestions: 40,
-      categories: ["Technical", "Logical"],
-    },
-  ]);
+  const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const [editQuiz, setEditQuiz] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     quiz_code: "",
-    duration_minutes: 60,
+    duration: 60,
     rules: [
       "No switching tabs",
       "No going back once answered",
@@ -51,71 +42,208 @@ export const AdminQuizPage = () => {
     ],
   });
 
-  const [editQuiz, setEditQuiz] = useState(null);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const response = await quizAPI.getCategories();
+        if (response.data.success) {
+          setCategories(response.data.data); // ✅ [{id: 1, name: "English"}, ...]
+          console.log("✅ Categories loaded:", response.data.data);
+        }
+      } catch (err) {
+        console.error("Categories fetch error:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // ✅ FETCH QUIZZES FROM API
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        setLoading(true);
+        const response = await quizAPI.getQuizzes();
+
+        if (response.data.success) {
+          // ✅ Set quizzes from API response
+          console.log(response.data.data);
+
+          setQuizzes(response.data.data || response.data.quizzes || []);
+        } else {
+          throw new Error(response.data.message || "Failed to fetch quizzes");
+        }
+      } catch (err) {
+        console.error("Fetch quizzes error:", err);
+        setError(err.message || "Failed to load quizzes");
+        setQuizzes([]); // Empty array on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizzes();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-800 text-center">
+        <h3 className="font-bold text-lg mb-2">Failed to load quizzes</h3>
+        <p>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   // Handle Create Quiz Form
-  const handleCreateQuiz = () => {
-    console.log("CREATE QUIZ JSON:", JSON.stringify(formData, null, 2));
-    const newQuiz = {
-      id: Math.max(...quizzes.map((q) => q.id), 0) + 1,
-      title: formData.title,
-      quiz_code: formData.quiz_code,
-      duration_minutes: formData.duration_minutes,
-      totalQuestions: formData.config.reduce(
-        (sum, c) => sum + c.question_count,
-        0,
-      ),
-      categories: formData.config.map((c) => categories[c.category_id - 1]),
+  const handleCreateQuiz = async () => {
+    if (
+      !formData.title ||
+      !formData.quiz_code ||
+      formData.config.length === 0
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    try {
+      const createData = {
+        title: formData.title.trim(),
+        quiz_code: formData.quiz_code.trim(),
+        duration_minutes: formData.duration,
+        rules: formData.rules,
+        config: formData.config,
+      };
+
+      console.log("🔄 Creating quiz:", createData);
+
+      const response = await quizAPI.createQuiz(createData); // POST /api/quiz/
+
+      if (response.data.success) {
+        alert(`✅ "${formData.title}" created successfully!`);
+
+        // Refresh quizzes list
+        const quizzesResponse = await quizAPI.getQuizzes();
+        setQuizzes(quizzesResponse.data.data);
+
+        // Reset form
+        setShowCreateForm(false);
+        setFormData({
+          title: "",
+          quiz_code: "",
+          duration: 60,
+          rules: [
+            "No switching tabs",
+            "No going back once answered",
+            "Auto submit on time expiry",
+          ],
+          config: [],
+        });
+      } else {
+        alert(`❌ Create failed: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error("Create error:", error);
+      alert(
+        `❌ Error: ${error.response?.data?.message || "Failed to create quiz"}`,
+      );
+    }
+  };
+
+  // Handle Edit Quiz
+  const handleEditQuiz = (quiz) => {
+    setEditQuiz(quiz);
+    setShowCreateForm(true);
+    console.log(quiz);
+
+    // Parse "100 min" → 100
+    const parseDuration = (durationStr) => {
+      if (!durationStr) return 60;
+      const numMatch = durationStr.match(/(\d+)/);
+      return numMatch ? parseInt(numMatch[1]) : 60;
     };
-    setQuizzes((prev) => [...prev, newQuiz]);
-    setShowCreateForm(false);
+
+    // ✅ FIXED: Use actual question_count from quiz.categories
+    const config = quiz.categories.map((cat) => ({
+      category_id: cat.id,
+      question_count: cat.question_count || 10, // ✅ Uses 5 from your JSON
+    }));
+
     setFormData({
-      title: "",
-      quiz_code: "",
-      duration_minutes: 60,
+      title: quiz.title,
+      quiz_code: quiz.quiz_code,
+      duration: parseDuration(quiz.duration), // 100
       rules: [
         "No switching tabs",
         "No going back once answered",
         "Auto submit on time expiry",
       ],
-      config: [
-        { category_id: 1, question_count: 10 },
-        { category_id: 2, question_count: 10 },
-        { category_id: 3, question_count: 10 },
-        { category_id: 4, question_count: 20 },
-      ],
+      config: config, // ✅ [{category_id:1, question_count:5}, ...]
     });
   };
 
-  // Handle Edit Quiz
-  const handleEditQuiz = (quiz) => {
-    const editData = {
-      title: quiz.title,
-      duration_minutes: quiz.duration_minutes,
-      config: quiz.categories.map((catName, index) => ({
-        category_id: categories.indexOf(catName) + 1,
-        question_count: 10, // Default, you can make this editable
-      })),
-    };
-    setFormData(editData);
-    setEditQuiz(quiz);
-    setShowCreateForm(true);
-  };
+  const handleSaveEditQuiz = async () => {
+    if (!editQuiz?.id || !formData.title || formData.config.length === 0) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-  const handleSaveEditQuiz = () => {
-    console.log("EDIT QUIZ JSON:", JSON.stringify(formData, null, 2));
-    setQuizzes((prev) =>
-      prev.map((q) => (q.id === editQuiz.id ? { ...q, ...formData } : q)),
-    );
-    setShowCreateForm(false);
-    setEditQuiz(null);
-    setFormData({
-      title: "",
-      quiz_code: "",
-      duration_minutes: 60,
-      rules: [],
-      config: [],
-    });
+    try {
+      const updateData = {
+        title: formData.title.trim(),
+        quiz_code: formData.quiz_code.trim(), // Include for edit
+        duration_minutes: formData.duration,
+        rules: formData.rules,
+        config: formData.config,
+      };
+
+      console.log("🔄 Updating quiz:", updateData);
+
+      const response = await quizAPI.updateQuiz(editQuiz.id, updateData);
+
+      if (response.data.success) {
+        alert(`✅ "${formData.title}" updated successfully!`);
+
+        // Refresh list
+        const quizzesResponse = await quizAPI.getQuizzes();
+        setQuizzes(quizzesResponse.data.data);
+
+        // Reset
+        setShowCreateForm(false);
+        setEditQuiz(null);
+        setFormData({
+          title: "",
+          quiz_code: "",
+          duration: 60,
+          rules: [
+            "No switching tabs",
+            "No going back once answered",
+            "Auto submit on time expiry",
+          ],
+          config: [],
+        });
+      }
+    } catch (error) {
+      alert(`❌ Error: ${error.response?.data?.message || "Update failed"}`);
+    }
   };
 
   const formatDuration = (minutes) => `${minutes} min`;
@@ -123,8 +251,10 @@ export const AdminQuizPage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      
-        <AdminHeader title={"Admin Quiz Management"} des={"Create and manage quizzes for students"}/>
+        <AdminHeader
+          title={"Admin Quiz Management"}
+          des={"Create and manage quizzes for students"}
+        />
         <div className="flex gap-3">
           <button
             onClick={() => setShowCreateForm(true)}
@@ -133,7 +263,7 @@ export const AdminQuizPage = () => {
             <BookPlus size={18} />
             Create Quiz
           </button>
-          <button className="px-6 py-2.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl font-semibold hover:bg-[var(--color-secondary)]/20 transition-all duration-200 flex items-center gap-2">
+          <button onClick={()=>navigate('/admin/loadquestions')} className="px-6 py-2.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl font-semibold hover:bg-[var(--color-secondary)]/20 transition-all duration-200 flex items-center gap-2">
             <BookOpen size={18} />
             Load Questions
           </button>
@@ -154,7 +284,7 @@ export const AdminQuizPage = () => {
                 setFormData({
                   title: "",
                   quiz_code: "",
-                  duration_minutes: 60,
+                  duration: 60,
                   rules: [],
                   config: [],
                 });
@@ -202,11 +332,11 @@ export const AdminQuizPage = () => {
               </label>
               <input
                 type="number"
-                value={formData.duration_minutes}
+                value={formData.duration}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    duration_minutes: parseInt(e.target.value),
+                    duration: parseInt(e.target.value),
                   })
                 }
                 min="1"
@@ -222,31 +352,29 @@ export const AdminQuizPage = () => {
 
             {/* Category Tags - Click to Add/Remove */}
             <div className="flex flex-wrap gap-2 mb-6">
-              {categories.map((categoryName, index) => {
-                const categoryId = index + 1;
+              {categories.map((category) => {
+                // ✅ FIXED: category object
                 const isAdded = formData.config.some(
-                  (c) => c.category_id === categoryId,
+                  (c) => c.category_id === category.id, // ✅ category.id
                 );
 
                 return (
                   <button
-                    key={categoryId}
+                    key={category.id} // ✅ FIXED: category.id
                     onClick={() => {
                       if (isAdded) {
-                        // Remove category
                         setFormData({
                           ...formData,
                           config: formData.config.filter(
-                            (c) => c.category_id !== categoryId,
+                            (c) => c.category_id !== category.id,
                           ),
                         });
                       } else {
-                        // Add category
                         setFormData({
                           ...formData,
                           config: [
                             ...formData.config,
-                            { category_id: categoryId, question_count: 10 },
+                            { category_id: category.id, question_count: 10 }, // ✅ category.id
                           ],
                         });
                       }
@@ -258,7 +386,7 @@ export const AdminQuizPage = () => {
                     }`}
                   >
                     <Tag size={14} />
-                    {categoryName}
+                    {category.name} {/* ✅ FIXED: category.name (string) */}
                     {isAdded && (
                       <svg
                         className="w-3 h-3 ml-1"
@@ -280,20 +408,21 @@ export const AdminQuizPage = () => {
             {/* Current Quiz Categories Configuration */}
             <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
               {formData.config.map((config, index) => {
-                const categoryName = categories[config.category_id - 1];
+                // ✅ FIXED: Safe lookup using categories.find()
+                const categoryName =
+                  categories.find((cat) => cat.id === config.category_id)
+                    ?.name || "Unknown";
 
                 return (
                   <div
                     key={index}
                     className="flex items-center gap-3 p-3 border border-[var(--color-muted)]/30 rounded-xl bg-[var(--color-surface)]/50"
                   >
-                    {/* Category Name (read-only) */}
                     <div className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-sm font-medium rounded-xl">
                       <Tag size={14} />
-                      {categoryName}
+                      {categoryName} {/* ✅ Now works: "English" */}
                     </div>
 
-                    {/* Question Count */}
                     <input
                       type="number"
                       value={config.question_count}
@@ -360,7 +489,7 @@ export const AdminQuizPage = () => {
               <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)] mb-4">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>{formatDuration(quiz.duration_minutes)}</span>
+                  <span>{quiz.duration}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
@@ -376,18 +505,18 @@ export const AdminQuizPage = () => {
                     className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200"
                   >
                     <Tag className="h-3 w-3 inline -ml-1 mr-1 align-middle" />
-                    {category}
+                    {category.name}
                   </span>
                 ))}
               </div>
 
               {/* Clean Start Quiz Button */}
-              <button className="w-full h-14 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl active:scale-90 transition-all flex items-center justify-center gap-3">
+              {/* <button className="w-full h-14 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl active:scale-90 transition-all flex items-center justify-center gap-3">
                 <span className="flex items-center gap-3">
                   Start Quiz
                   <Play className="h-5 w-5" />
                 </span>
-              </button>
+              </button> */}
             </div>
 
             {/* Subtle card glow */}
