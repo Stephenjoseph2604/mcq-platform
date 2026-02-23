@@ -6,14 +6,16 @@ import {
   updateDepartment,
   deleteDepartment
 } from "./department.controller.js";
-
+import { adminOnly } from "../../middlewares/admin.middleware.js";
+import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { superAdminOnly } from "../../middlewares/superAdmin.middleware.js";
 const router = express.Router();
 
 // 🔐 add admin middleware later
-router.post("/", createDepartment);
-router.get("/", getDepartments);
-router.get("/:id", getDepartmentById);
-router.put("/:id", updateDepartment);
-router.delete("/:id", deleteDepartment);
+router.post("/",authMiddleware, adminOnly, createDepartment);
+router.get("/",  getDepartments);
+router.get("/:id", authMiddleware, adminOnly, getDepartmentById);
+router.put("/:id", authMiddleware, adminOnly, updateDepartment);
+router.delete("/:id", authMiddleware, superAdminOnly, deleteDepartment);
 
 export default router;

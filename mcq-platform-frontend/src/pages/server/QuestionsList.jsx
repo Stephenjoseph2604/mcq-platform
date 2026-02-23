@@ -67,7 +67,7 @@ const QuestionsList = ({
 
       setEditingQuestion(null);
     } catch (error) {
-      console.error("Save failed:", error);
+ 
       alert("Failed to update question");
     } finally {
       setSaving(false);

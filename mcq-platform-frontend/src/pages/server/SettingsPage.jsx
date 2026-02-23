@@ -1,5 +1,5 @@
 // SettingsPage.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Eye,
@@ -10,20 +10,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import AdminHeader from "../../components/AdminHeader";
-
-// Mock data (you’ll replace this with API calls)
-const initialCategories = [
-  { id: 1, name: "English" },
-  { id: 2, name: "Aptitude" },
-  { id: 3, name: "Logical" },
-  { id: 4, name: "Technical" },
-];
-
-const initialDepartments = [
-  { id: 1, code: "CSE", name: "Computer Science" },
-  { id: 2, code: "MECH", name: "Mechanical" },
-  { id: 3, code: "ECE", name: "Electronics & Communication" },
-];
+import { categoriesAPI, departmentAPI } from "../../services/api";
 
 const initialAdmins = [
   {
@@ -60,67 +47,144 @@ const initialRequests = [
 ];
 
 export const SettingsPage = () => {
-  const [categories, setCategories] = useState(initialCategories);
-  const [departments, setDepartments] = useState(initialDepartments);
   const [admins, setAdmins] = useState(initialAdmins);
   const [requests, setRequests] = useState(initialRequests);
   const [showRequests, setShowRequests] = useState(false);
 
   // Category CRUD
+  const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState("");
   const [editCategoryId, setEditCategoryId] = useState(null);
   const [editCategoryName, setEditCategoryName] = useState("");
 
-  const handleAddCategory = () => {
-    if (!newCategory.trim()) return;
-    const id = Math.max(...categories.map((c) => c.id), 0) + 1;
-    setCategories((prev) => [...prev, { id, name: newCategory.trim() }]);
-    setNewCategory("");
-  };
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  const handleEditCategory = (id) => {
-    const cat = categories.find((c) => c.id === id);
-    if (cat) {
-      setEditCategoryId(id);
-      setEditCategoryName(cat.name);
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await categoriesAPI.getAll();
+      if (response.data?.success) {
+        setCategories(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSaveCategory = () => {
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+
+    try {
+      setSaving(true);
+      const response = await categoriesAPI.create(newCategory.trim());
+      if (response.data?.success) {
+        fetchCategories()
+        setNewCategory("");
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditCategory = (id) => {
+    const category = categories.find((cat) => cat.id === id);
+    if (category) {
+      setEditCategoryId(id);
+      setEditCategoryName(category.name);
+    }
+  };
+
+  const handleSaveCategory = async () => {
     if (!editCategoryName.trim()) return;
-    setCategories((prev) =>
-      prev.map((c) =>
-        c.id === editCategoryId ? { ...c, name: editCategoryName.trim() } : c,
-      ),
-    );
-    setEditCategoryId(null);
-    setEditCategoryName("");
+
+    try {
+      setSaving(true);
+      const response = await categoriesAPI.update(
+        editCategoryId,
+        editCategoryName.trim(),
+      );
+
+      if (response.data?.success) {
+        fetchCategories();
+        setEditCategoryId(null);
+        setEditCategoryName("");
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteCategory = (id) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+  const handleDeleteCategory = async (id) => {
+    if (!confirm("Are you sure you want to delete this category?")) return;
+
+    try {
+      setSaving(true);
+      await categoriesAPI.delete(id);
+      setCategories(categories.filter((cat) => cat.id !== id));
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Department CRUD
+  const [departments, setDepartments] = useState([]);
   const [newDeptCode, setNewDeptCode] = useState("");
   const [newDeptName, setNewDeptName] = useState("");
   const [editDeptId, setEditDeptId] = useState(null);
   const [editDeptCode, setEditDeptCode] = useState("");
   const [editDeptName, setEditDeptName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleAddDepartment = () => {
+  // Fetch departments on mount
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      const response = await departmentAPI.getAll();
+      if (response.data?.success) {
+        setDepartments(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddDepartment = async () => {
     if (!newDeptCode.trim() || !newDeptName.trim()) return;
-    const id = Math.max(...departments.map((d) => d.id), 0) + 1;
-    setDepartments((prev) => [
-      ...prev,
-      { id, code: newDeptCode.trim(), name: newDeptName.trim() },
-    ]);
-    setNewDeptCode("");
-    setNewDeptName("");
+
+    try {
+      setSaving(true);
+      const response = await departmentAPI.create(
+        newDeptCode.trim(),
+        newDeptName.trim(),
+      );
+      if (response.data?.success) {
+        fetchDepartments();
+      }
+    } catch (error) {
+      console.error("Error adding department:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEditDepartment = (id) => {
-    const dept = departments.find((d) => d.id === id);
+    const dept = departments.find((dept) => dept.id === id);
     if (dept) {
       setEditDeptId(id);
       setEditDeptCode(dept.code);
@@ -128,22 +192,41 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleSaveDepartment = () => {
+  const handleSaveDepartment = async () => {
     if (!editDeptCode.trim() || !editDeptName.trim()) return;
-    setDepartments((prev) =>
-      prev.map((d) =>
-        d.id === editDeptId
-          ? { ...d, code: editDeptCode.trim(), name: editDeptName.trim() }
-          : d,
-      ),
-    );
-    setEditDeptId(null);
-    setEditDeptCode("");
-    setEditDeptName("");
+
+    try {
+      setSaving(true);
+      const response = await departmentAPI.update(
+        editDeptId,
+        editDeptCode.trim(),
+        editDeptName.trim(),
+      );
+      if (response.data?.success) {
+        fetchDepartments();
+        setEditDeptId(null);
+        setEditDeptCode("");
+        setEditDeptName("");
+      }
+    } catch (error) {
+      console.error("Error updating department:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteDepartment = (id) => {
-    setDepartments((prev) => prev.filter((d) => d.id !== id));
+  const handleDeleteDepartment = async (id) => {
+    if (!confirm("Are you sure you want to delete this department?")) return;
+
+    try {
+      setSaving(true);
+      await departmentAPI.delete(id);
+      setDepartments(departments.filter((dept) => dept.id !== id));
+    } catch (error) {
+      console.error("Error deleting department:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Admin CRUD / toggle active
@@ -173,15 +256,26 @@ export const SettingsPage = () => {
     setRequests((prev) => prev.filter((r) => r.id !== id));
   };
 
+  if (loading) {
+    return (
+      <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 shadow-xl flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 min-h-screen">
-        {/* Header */}
-      <AdminHeader title={'Admin Settings'} des={'Manage categories, departments, and admin accounts'}/>  
+      {/* Header */}
+      <AdminHeader
+        title={"Admin Settings"}
+        des={"Manage categories, departments, and admin accounts"}
+      />
 
-   {/* Categories & Departments (responsive grid) */}
+      {/* Categories & Departments (responsive grid) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6  ">
         {/* Categories */}
-        <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4  shadow-xl flex flex-col">
+        <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 shadow-xl flex flex-col">
           <h2 className="text-base sm:text-lg font-bold text-[var(--color-text)] mb-3 sm:mb-4">
             Categories
           </h2>
@@ -193,14 +287,16 @@ export const SettingsPage = () => {
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               placeholder="Category name"
+              disabled={saving}
               className="flex-1 px-3 py-2 border border-[var(--color-muted)]/30 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/40 outline-none text-sm"
             />
             <button
               onClick={handleAddCategory}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-all duration-200 flex items-center gap-1.5 self-start"
+              disabled={!newCategory.trim() || saving}
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-all duration-200 flex items-center gap-1.5 self-start disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={16} />
-              Add
+              {saving ? "Adding..." : "Add"}
             </button>
           </div>
 
@@ -217,11 +313,19 @@ export const SettingsPage = () => {
                       type="text"
                       value={editCategoryName}
                       onChange={(e) => setEditCategoryName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveCategory();
+                        if (e.key === "Escape") {
+                          setEditCategoryId(null);
+                          setEditCategoryName("");
+                        }
+                      }}
                       className="flex-1 px-2 py-1 border border-[var(--color-muted)]/30 rounded text-sm"
                     />
                     <button
                       onClick={handleSaveCategory}
-                      className="ml-2 text-green-600 hover:text-green-700"
+                      disabled={!editCategoryName.trim() || saving}
+                      className="text-green-600 hover:text-green-700 disabled:opacity-50"
                     >
                       <CheckCircle size={16} />
                     </button>
@@ -234,13 +338,15 @@ export const SettingsPage = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleEditCategory(cat.id)}
-                        className="text-blue-600 hover:text-blue-700"
+                        disabled={saving}
+                        className="text-blue-600 hover:text-blue-700 disabled:opacity-50"
                       >
                         <Edit size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
-                        className="text-red-600 hover:text-red-700"
+                        disabled={saving}
+                        className="text-red-600 hover:text-red-700 disabled:opacity-50"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -249,6 +355,11 @@ export const SettingsPage = () => {
                 )}
               </div>
             ))}
+            {categories.length === 0 && !loading && (
+              <div className="text-center py-8 text-[var(--color-text-muted)]">
+                No categories found. Add one above!
+              </div>
+            )}
           </div>
         </div>
 
@@ -296,6 +407,14 @@ export const SettingsPage = () => {
                       type="text"
                       value={editDeptCode}
                       onChange={(e) => setEditDeptCode(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveDepartment();
+                        if (e.key === "Escape") {
+                          setEditDeptId(null);
+                          setEditDeptCode("");
+                          setEditDeptName("");
+                        }
+                      }}
                       className="flex-1 px-2 py-1 border border-[var(--color-muted)]/30 rounded text-sm"
                       placeholder="Code"
                     />
@@ -303,6 +422,14 @@ export const SettingsPage = () => {
                       type="text"
                       value={editDeptName}
                       onChange={(e) => setEditDeptName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveDepartment();
+                        if (e.key === "Escape") {
+                          setEditDeptId(null);
+                          setEditDeptCode("");
+                          setEditDeptName("");
+                        }
+                      }}
                       className="flex-1 px-2 py-1 border border-[var(--color-muted)]/30 rounded text-sm"
                       placeholder="Name"
                     />
@@ -371,7 +498,9 @@ export const SettingsPage = () => {
                   <tr className="border-b border-[var(--color-muted)]/30">
                     <th className="py-2 text-left">Name</th>
                     <th className="py-2 text-left">Email</th>
-                    <th className="py-2 text-left hidden md:inline-block">Requested At</th>
+                    <th className="py-2 text-left hidden md:inline-block">
+                      Requested At
+                    </th>
                     <th className="py-2 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -383,7 +512,9 @@ export const SettingsPage = () => {
                     >
                       <td className="py-2">{req.name}</td>
                       <td className="py-2">{req.email}</td>
-                      <td className="py-2  hidden md:inline-block">{req.created_at}</td>
+                      <td className="py-2  hidden md:inline-block">
+                        {req.created_at}
+                      </td>
                       <td className="py-2 text-center space-x-2">
                         <button
                           onClick={() => handleAcceptRequest(req.id)}
@@ -420,7 +551,9 @@ export const SettingsPage = () => {
                   <th className="py-2 text-left">Name</th>
                   <th className="py-2 text-left">Email</th>
                   <th className="py-2 text-left">Role</th>
-                  <th className="py-2 text-left  hidden md:inline-block">Created At</th>
+                  <th className="py-2 text-left  hidden md:inline-block">
+                    Created At
+                  </th>
                   <th className="py-2 text-center">Status</th>
                 </tr>
               </thead>
@@ -433,7 +566,9 @@ export const SettingsPage = () => {
                     <td className="py-2 ">{admin.name}</td>
                     <td className="py-2">{admin.email}</td>
                     <td className="py-2">{admin.role}</td>
-                    <td className="py-2  hidden md:inline-block">{admin.created_at}</td>
+                    <td className="py-2  hidden md:inline-block">
+                      {admin.created_at}
+                    </td>
                     <td className="py-2 text-center">
                       <button
                         onClick={() => handleToggleAdminStatus(admin.id)}

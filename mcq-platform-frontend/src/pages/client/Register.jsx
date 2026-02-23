@@ -25,7 +25,7 @@ const Register = () => {
     const fetchDepartments = async () => {
       try {
         setLoadingDepartments(true);
-        const response = await departmentAPI.getDepartments();
+        const response = await departmentAPI.getAll();
         if (response.data.success) {
           setDepartments(response.data.data);
         }

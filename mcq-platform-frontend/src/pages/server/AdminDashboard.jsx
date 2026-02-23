@@ -66,16 +66,14 @@ export const AdminDashboard = () => {
       try {
         setLoadingStats(true);
         const response = await adminAPI.getMeta();
-        
         if (response.data.success) {
           // ✅ Extract from response.data.message
           setStats(response.data.message);
-          console.log('✅ Admin stats loaded:', response.data.message);
+        
         } else {
           throw new Error(response.data.message || 'Failed to load stats');
         }
       } catch (err) {
-        console.error('Stats fetch error:', err);
         setError(err.message);
       } finally {
         setLoadingStats(false);

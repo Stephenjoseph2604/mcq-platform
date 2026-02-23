@@ -3,6 +3,6 @@ import { startQuiz } from "./attempt.controller.js";
 
 const router = express.Router();
 
-router.post("/start", startQuiz);
+// router.post("/start", startQuiz);
 
 export default router;

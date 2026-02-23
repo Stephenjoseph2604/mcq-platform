@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { getAdmin, isAdminAuthenticated } from '../utils/auth';
-
+import React, { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { getAdmin, isAdminAuthenticated } from "../utils/auth";
 
 const AdminProtectedRoute = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -12,22 +11,17 @@ const AdminProtectedRoute = ({ children }) => {
     const checkAdminAuth = () => {
       const adminToken = isAdminAuthenticated();
       const admin = getAdmin();
-      
+
       // Check if admin token exists AND role is SUPER_ADMIN or ADMIN
       if (adminToken && admin) {
-        const isSuperAdmin = admin.role === 'SUPER_ADMIN';
-        const isAdminRole = admin.role === 'ADMIN';
-        
+        const isSuperAdmin = admin.role === "SUPER_ADMIN";
+        const isAdminRole = admin.role === "ADMIN";
+
         if (isSuperAdmin || isAdminRole) {
-          console.log(`✅ ${admin.role} authorized:`, admin.name);
           setIsAuthorized(true);
-        } else {
-          console.log('❌ Insufficient admin role:', admin.role);
-        }
-      } else {
-        console.log('❌ No admin token found');
-      }
-      
+        } 
+      } 
+
       setIsLoading(false);
     };
 
@@ -45,7 +39,6 @@ const AdminProtectedRoute = ({ children }) => {
 
   // Not authorized - redirect to admin login
   if (!isAuthorized) {
-    console.log('🔒 Redirecting to admin login');
     return <Navigate to="/admin/login" replace state={{ from: location }} />;
   }
 

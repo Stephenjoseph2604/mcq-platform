@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   Trash2, 
   Phone, 
@@ -10,6 +10,7 @@ import {
   Edit3
 } from "lucide-react";
 import AdminHeader from "../../components/AdminHeader";
+import { departmentAPI, studentAPI } from "../../services/api";
 
 const sampleStudents = [
   {
@@ -39,12 +40,46 @@ const departments = {
 };
 
 export const StudentsManagement = () => {
-  const [students, setStudents] = useState(sampleStudents);
+  const [students, setStudents] = useState([]);
+  const [departments, setDepartments] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
+
+  // Fetch students and departments on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch students
+        const studentResponse = await studentAPI.getAll();
+        if (studentResponse.data.success) {
+          setStudents(studentResponse.data.data);
+        }
+
+        // Fetch departments
+        const deptResponse = await departmentAPI.getAll();
+        const deptMap = {};
+        deptResponse.data.data.forEach(dept => {
+          deptMap[dept.id] = dept.name;
+        });
+        setDepartments(deptMap);
+
+      } catch (err) {
+        setError('Failed to fetch data');
+        console.error('API Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const formatDate = (isoString) => {
     return new Date(isoString).toLocaleDateString("en-IN", {
@@ -73,13 +108,22 @@ export const StudentsManagement = () => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (studentToDelete) {
-      setStudents(prev => prev.filter(student => student.id !== studentToDelete));
+      try {
+        // Call delete API (you'll need to implement this in studentAPI)
+        await studentAPI.delete(studentToDelete);
+        setStudents(prev => prev.filter(student => student.id !== studentToDelete));
+      } catch (err) {
+        console.error('Delete failed:', err);
+      }
     }
     setShowDeleteConfirm(false);
     setStudentToDelete(null);
   };
+
+  if (loading) return <div className="p-4">Loading students...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
 
   return (
     <div className="p-4 sm:p-6 space-y-6 min-h-screen">

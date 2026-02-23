@@ -8,9 +8,11 @@ import {
   Tag,
   Play,
   BookPlus,
+  User,
+  Users,
 } from "lucide-react";
 import AdminHeader from "../../components/AdminHeader";
-import { quizAPI } from "../../services/api";
+import { categoriesAPI, quizAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
 // const categories = ["English", "Aptitude", "Logical", "Technical"];
@@ -35,24 +37,19 @@ export const AdminQuizPage = () => {
       "Auto submit on time expiry",
     ],
     config: [
-      { category_id: 1, question_count: 10 },
-      { category_id: 2, question_count: 10 },
-      { category_id: 3, question_count: 10 },
-      { category_id: 4, question_count: 20 },
     ],
   });
 
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
+      try { 
         setLoadingCategories(true);
-        const response = await quizAPI.getCategories();
+        const response = await categoriesAPI.getAll();
         if (response.data.success) {
+          console.log(response.data.data);
           setCategories(response.data.data); // ✅ [{id: 1, name: "English"}, ...]
-          console.log("✅ Categories loaded:", response.data.data);
         }
       } catch (err) {
-        console.error("Categories fetch error:", err);
       } finally {
         setLoadingCategories(false);
       }
@@ -69,15 +66,14 @@ export const AdminQuizPage = () => {
         const response = await quizAPI.getQuizzes();
 
         if (response.data.success) {
-          // ✅ Set quizzes from API response
-          console.log(response.data.data);
+  
 
           setQuizzes(response.data.data || response.data.quizzes || []);
         } else {
           throw new Error(response.data.message || "Failed to fetch quizzes");
         }
       } catch (err) {
-        console.error("Fetch quizzes error:", err);
+        
         setError(err.message || "Failed to load quizzes");
         setQuizzes([]); // Empty array on error
       } finally {
@@ -133,7 +129,6 @@ export const AdminQuizPage = () => {
         config: formData.config,
       };
 
-      console.log("🔄 Creating quiz:", createData);
 
       const response = await quizAPI.createQuiz(createData); // POST /api/quiz/
 
@@ -161,7 +156,6 @@ export const AdminQuizPage = () => {
         alert(`❌ Create failed: ${response.data.message}`);
       }
     } catch (error) {
-      console.error("Create error:", error);
       alert(
         `❌ Error: ${error.response?.data?.message || "Failed to create quiz"}`,
       );
@@ -172,7 +166,7 @@ export const AdminQuizPage = () => {
   const handleEditQuiz = (quiz) => {
     setEditQuiz(quiz);
     setShowCreateForm(true);
-    console.log(quiz);
+
 
     // Parse "100 min" → 100
     const parseDuration = (durationStr) => {
@@ -215,7 +209,6 @@ export const AdminQuizPage = () => {
         config: formData.config,
       };
 
-      console.log("🔄 Updating quiz:", updateData);
 
       const response = await quizAPI.updateQuiz(editQuiz.id, updateData);
 
@@ -263,7 +256,10 @@ export const AdminQuizPage = () => {
             <BookPlus size={18} />
             Create Quiz
           </button>
-          <button onClick={()=>navigate('/admin/loadquestions')} className="px-6 py-2.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl font-semibold hover:bg-[var(--color-secondary)]/20 transition-all duration-200 flex items-center gap-2">
+          <button
+            onClick={() => navigate("/admin/loadquestions")}
+            className="px-6 py-2.5 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl font-semibold hover:bg-[var(--color-secondary)]/20 transition-all duration-200 flex items-center gap-2"
+          >
             <BookOpen size={18} />
             Load Questions
           </button>
@@ -496,10 +492,25 @@ export const AdminQuizPage = () => {
                   <span>{quiz.totalQuestions} questions</span>
                 </div>
               </div>
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-[var(--color-primary)]/5 to-[var(--color-secondary)]/5 border border-[var(--color-primary)]/20 rounded-xl backdrop-blur-sm">
+                <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full" />
+                <div className="flex-1">
+                  <span className="block text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">
+                    Quiz Code
+                  </span>
+                  <span className="block text-lg font-black tracking-wider text-[var(--color-primary)]">
+                    {quiz.quiz_code}
+                  </span>
+                </div>
+                <div className="w-px h-8 bg-[var(--color-muted)]/50" />
+                <span className="text-sm text-[var(--color-text-muted)] font-medium">
+                  <Users  /> 
+                </span>
+              </div>
 
               {/* Categories Tags */}
               <div className="flex flex-wrap gap-2">
-                {quiz.categories.map((category, index) => (
+                {quiz.categories.slice(0, 3).map((category, index) => (
                   <span
                     key={index}
                     className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200"
@@ -508,6 +519,11 @@ export const AdminQuizPage = () => {
                     {category.name}
                   </span>
                 ))}
+                {quiz.categories.length > 3 && (
+                    <span className="px-3 py-1 bg-[var(--color-muted)]/20 text-[var(--color-text-muted)] text-xs rounded-lg font-medium">
+                      +{quiz.categories.length - 3} more
+                    </span>
+                  )}
               </div>
 
               {/* Clean Start Quiz Button */}

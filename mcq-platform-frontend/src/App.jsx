@@ -33,14 +33,21 @@ const App = () => {
             element={
               <AdminProtectedRoute>
                 <AdminDashboard />
-               </AdminProtectedRoute>
+              </AdminProtectedRoute>
             }
           />
-          <Route path="students" element={<StudentsManagement />} />
-          <Route path="quiz" element={<AdminQuizPage />} />
-          <Route path="loadquestions" element={<LoadQuestions />} />
-          <Route path="reports" element={<AdminReport />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="students"
+            element={
+              <AdminProtectedRoute>
+                <StudentsManagement />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route path="quiz" element={<AdminProtectedRoute><AdminQuizPage /></AdminProtectedRoute>} />
+          <Route path="loadquestions" element={<AdminProtectedRoute><LoadQuestions /></AdminProtectedRoute>} />
+          <Route path="reports" element={<AdminProtectedRoute><AdminReport /></AdminProtectedRoute>} />
+          <Route path="settings" element={<AdminProtectedRoute><SettingsPage /></AdminProtectedRoute>} />
         </Route>
 
         <Route path="/admin/login" element={<AdminLogin />} />

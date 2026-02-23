@@ -10,7 +10,6 @@ import {
   Loader2 
 } from 'lucide-react';
 import { quizAPI } from '../../services/api';
-import { isAuthenticated } from '../../utils/auth';
 import { encryptId } from '../../utils/encryption';
 
 const QuizPage = () => {

@@ -38,11 +38,11 @@ const AdminLogin = () => {
       const response = await authAPI.adminLogin(formData);
       
       if (response.data.success) {
-        // ✅ STORE ADMIN DATA - mcqadmin & mcqadmintoken
+    
         localStorage.setItem('mcqadmintoken', response.data.message.token);
         localStorage.setItem('mcqadmin', JSON.stringify(response.data.message.admin));
         
-        console.log('✅ Admin login successful:', response.data.message.admin);
+
         
         setMessage({ 
           type: 'success', 

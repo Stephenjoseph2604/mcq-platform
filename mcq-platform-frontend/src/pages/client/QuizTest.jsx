@@ -1,5 +1,5 @@
 // components/QuizTest.jsx - Complete quiz with question panel + same theme
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Clock,
   BookOpen,
@@ -438,7 +438,90 @@ const QuizTest = () => {
       setIsSubmitted(false); // Re-enable UI on error
     }
   };
+  // const hasShownBackAlert = useRef(false);
+  // const hasShownVisibilityAlert = useRef(false);
+  // const hasShownMinimizeAlert = useRef(false);
 
+  // const handleBackButton = useCallback((event) => {
+  //   event.preventDefault();
+  //   if (!hasShownBackAlert.current) {
+  //     alert('Cannot go back! Complete your quiz first.');
+  //     hasShownBackAlert.current = true;
+  //   }
+  //   window.history.pushState(null, document.title, window.location.href);
+  // }, []);
+
+  // // COMBINED DETECTION - Catches EVERYTHING
+  // const handlePageVisibility = useCallback(() => {
+  //   if (document.hidden && !hasShownVisibilityAlert.current) {
+  //     alert('Please keep this tab active to complete your quiz!');
+  //     hasShownVisibilityAlert.current = true;
+  //   } else if (!document.hidden) {
+  //     hasShownVisibilityAlert.current = false;
+  //   }
+  // }, []);
+
+  // // FIXED MINIMIZE DETECTION - Multiple layers
+  // const handleWindowStateChange = useCallback(() => {
+  //   // Check if window is truly minimized/invisible
+  //   const isMinimized = !document.hasFocus() && document.hidden;
+    
+  //   if (isMinimized && !hasShownMinimizeAlert.current) {
+  //     alert('Please keep browser window active and visible!');
+  //     hasShownMinimizeAlert.current = true;
+  //   }
+  // }, []);
+
+  // // ULTRA-RELIABLE MINIMIZE DETECTION
+  // const handleWindowBlur = useCallback(() => {
+  //   // Double-check with multiple conditions
+  //   const isLikelyMinimized = 
+  //     !document.hasFocus() || 
+  //     document.hidden ||
+  //     (window.innerWidth === 0 || window.innerHeight === 0);
+
+  //   if (isLikelyMinimized && !hasShownMinimizeAlert.current) {
+  //     alert('Browser minimized detected! Please keep window active.');
+  //     hasShownMinimizeAlert.current = true;
+  //   }
+  // }, []);
+
+  // const handleWindowFocus = useCallback(() => {
+  //   // Reset all alerts when user returns
+  //   hasShownMinimizeAlert.current = false;
+  //   hasShownVisibilityAlert.current = false;
+  // }, []);
+
+  // useEffect(() => {
+  //   // Back button
+  //   window.history.pushState(null, '', window.location.href);
+  //   window.addEventListener('popstate', handleBackButton);
+    
+  //   // Tab switching
+  //   document.addEventListener('visibilitychange', handlePageVisibility);
+    
+  //   // Minimize detection - TRIPLE PROTECTION
+  //   window.addEventListener('blur', handleWindowBlur);
+  //   window.addEventListener('focus', handleWindowFocus);
+  //   document.addEventListener('visibilitychange', handleWindowStateChange);
+    
+  //   // Polling backup for stubborn browsers (runs every 500ms)
+  //   const checkMinimizeInterval = setInterval(() => {
+  //     if (!document.hasFocus() && document.hidden && !hasShownMinimizeAlert.current) {
+  //       alert('Window not active! Please keep browser visible.');
+  //       hasShownMinimizeAlert.current = true;
+  //     }
+  //   }, 500);
+
+  //   return () => {
+  //     window.removeEventListener('popstate', handleBackButton);
+  //     document.removeEventListener('visibilitychange', handlePageVisibility);
+  //     document.removeEventListener('visibilitychange', handleWindowStateChange);
+  //     window.removeEventListener('blur', handleWindowBlur);
+  //     window.removeEventListener('focus', handleWindowFocus);
+  //     clearInterval(checkMinimizeInterval);
+  //   };
+  // }, [handleBackButton, handlePageVisibility, handleWindowBlur, handleWindowStateChange, handleWindowFocus]);
   // ✅ NEW: Already submitted UI
   if (quizAlreadySubmitted) {
     return (
@@ -454,7 +537,7 @@ const QuizTest = () => {
             You've already completed this quiz.
           </p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/quiz')}
             className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             View Quizzes
@@ -513,7 +596,7 @@ const QuizTest = () => {
             Check your console for submitted answers.
           </p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/quiz')}
             className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             Go Back to Quizzes
@@ -526,7 +609,7 @@ const QuizTest = () => {
     return <div>Loading quiz...</div>; // Or your loading UI
   }
   return (
-    <div className="min-h-screen bg-transparent pt-25 px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-transparent pt-20 px-4 sm:px-6 lg:px-8 relative">
       {/* Dot Grid Background */}
       <div
         className="absolute inset-0 opacity-10 pointer-events-none"
@@ -539,7 +622,7 @@ const QuizTest = () => {
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-7 pb-10 items-stretch">
         {/* Left: Question Area - RELATIVE HEIGHTS, PERFECT FIT */}
         <div className="flex-1 lg:max-w-5xl">
-          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl h-full flex flex-col">
+          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl  flex flex-col">
             {/* Header - flexible but capped */}
             <div className="flex-shrink-0 pb-4 lg:pb-6 min-h-[64px] lg:min-h-[80px] max-h-[80px]">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between h-full gap-3 lg:gap-0">
@@ -563,14 +646,31 @@ const QuizTest = () => {
               </div>
             </div>
 
-            {/* Question Text - flexible with scroll */}
-            <div className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1">
-              <h2 className="text-base lg:text-lg xl:text-xl font-bold text-[var(--color-text)] leading-relaxed px-1 -mt-1 min-h-[1.5rem]">
+            {/* Question Text - flexible with scroll - COPY PROTECTED */}
+            <div
+              className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1"
+              style={{
+                WebkitUserSelect: "none",
+                MsUserSelect: "none",
+                userSelect: "none",
+                WebkitTouchCallout: "none",
+              }}
+              onCopy={(e) => e.preventDefault()}
+              onSelectStart={(e) => e.preventDefault()}
+            >
+              <h2
+                className="text-base lg:text-lg xl:text-xl font-bold text-[var(--color-text)] leading-relaxed px-1 -mt-1 min-h-[1.5rem] select-none"
+                style={{
+                  WebkitUserSelect: "none",
+                  MsUserSelect: "none",
+                  userSelect: "none",
+                }}
+              >
                 {currentQuestion?.question_text || "Loading question..."}
               </h2>
             </div>
 
-            {/* Options - take remaining space (no h-[60%] / max-h) */}
+            {/* Options - take remaining space (no h-[60%] / max-h) - COPY PROTECTED */}
             <div className="flex-1 min-h-[200px] lg:min-h-[250px] mb-3 lg:mb-6 space-y-1.5 lg:space-y-2.5 flex flex-col overflow-hidden">
               {[
                 { key: "a", label: "A", value: currentQuestion.option_a },
@@ -581,6 +681,14 @@ const QuizTest = () => {
                 <label
                   key={key}
                   className="flex items-start p-2.5 lg:p-3 border border-[var(--color-muted)]/30 rounded-lg lg:rounded-xl hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5 cursor-pointer transition-all duration-200 group flex-1 min-h-[44px] lg:min-h-[50px] max-h-[60px]"
+                  style={{
+                    WebkitUserSelect: "none",
+                    MsUserSelect: "none",
+                    userSelect: "none",
+                    WebkitTouchCallout: "none",
+                  }}
+                  onCopy={(e) => e.preventDefault()}
+                  onSelectStart={(e) => e.preventDefault()}
                 >
                   <input
                     type="radio"
@@ -592,7 +700,14 @@ const QuizTest = () => {
                     }
                     className="w-4 h-4 lg:w-5 lg:h-5 mt-0.5 lg:mt-1 text-[var(--color-primary)] bg-white focus:ring-[var(--color-primary)] rounded-full group-hover:border-[var(--color-primary)]/70 transition-all duration-200 mr-2.5 lg:mr-3 flex-shrink-0"
                   />
-                  <span className="text-sm lg:text-base font-medium text-[var(--color-text)] group-hover:text-[var(--color-primary)] leading-relaxed flex-1 min-w-0 truncate pt-0.5">
+                  <span
+                    className="text-sm lg:text-base font-medium text-[var(--color-text)] group-hover:text-[var(--color-primary)] leading-relaxed flex-1 min-w-0 truncate pt-0.5 select-none"
+                    style={{
+                      WebkitUserSelect: "none",
+                      MsUserSelect: "none",
+                      userSelect: "none",
+                    }}
+                  >
                     {label}. {value}
                   </span>
                 </label>
