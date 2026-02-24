@@ -162,7 +162,7 @@ export const reportAPI = {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   // Add other report endpoints as needed
-  getQuizReport: (quizId) => api.get(`/quiz/report/${quizId}`,{
+  getQuizReport: (quizId) => api.get(`/quiz/report/full/${quizId}`,{
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   getStudentReport: (quizId, studentId) =>

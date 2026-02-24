@@ -89,7 +89,23 @@ export const allStudentsQuizReport = async (req, res) => {
   }
 };
 
+export const getQuizFullSubmissionReport = async (req, res) => {
+  try {
+    const { quizId } = req.params;
 
+    if (!quizId) {
+      return error(res, "Quiz ID is required", null, 400);
+    }
+
+    // ✅ PASS quizId
+    const report = await quizService.getQuizFullSubmissionReport(quizId);
+
+    return success(res, "Full Quiz submission report fetched", report);
+  } catch (error) {
+    console.error(error);
+    return error(res, error.message || "Failed to fetch report");
+  }
+};
 
 export const getAllQuizList = async (req, res) => {
   try {
@@ -108,5 +124,32 @@ export const getAllQuizzesWithSubmissions = async (req, res) => {
     return success(res, "Quizzes fetched successfully", data);
   } catch (err) {
     return error(res, err.message);
+  }
+};
+
+
+
+
+
+export const deleteQuizSubmissionReport = async (req, res) => {
+  try {
+    const { quizId, userId } = req.params;
+
+    if (!quizId || !userId) {
+      return res.status(400).json({
+        message: "Quiz ID and User ID are required",
+      });
+    }
+
+    await quizService.deleteQuizSubmissionReport(quizId, userId);
+
+    return res.status(200).json({
+      message: "Quiz submission report deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete submission error:", error);
+    return res.status(500).json({
+      message: error.message || "Failed to delete quiz submission report",
+    });
   }
 };

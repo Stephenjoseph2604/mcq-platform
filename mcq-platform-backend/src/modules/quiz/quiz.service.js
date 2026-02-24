@@ -399,7 +399,11 @@ export const getStudentQuizReport = async (quizId, studentId) => {
       qa.percentage
    FROM quiz_attempt qa
    JOIN quiz q ON qa.quiz_id = q.id
-   WHERE qa.quiz_id = ? AND qa.user_id = ?`,
+   WHERE qa.quiz_id = ?
+     AND qa.user_id = ?
+     AND qa.submitted = TRUE
+   ORDER BY qa.end_time DESC
+   LIMIT 1`,
       [quizId, studentId],
     );
 
@@ -514,58 +518,6 @@ export const getAllStudentsQuizReport = async (quizId) => {
   }
 };
 
-export const getAllQuizzes = async () => {
-  const sql = `
-    SELECT 
-      q.id AS quiz_id,
-      q.title,
-      q.quiz_code,
-      q.duration_minutes,
-      q.total_questions,
-
-      qc.category_id,
-      qc.question_count,
-
-      c.name AS category_name
-    FROM quiz q
-    LEFT JOIN quiz_question_config qc ON q.id = qc.quiz_id
-    LEFT JOIN question_category c ON qc.category_id = c.id
-    ORDER BY q.id
-  `;
-
-  const [rows] = await db.query(sql);
-
-  const quizMap = new Map();
-
-  for (const row of rows) {
-    if (!quizMap.has(row.quiz_id)) {
-      quizMap.set(row.quiz_id, {
-        id: row.quiz_id,
-        title: row.title,
-        quiz_code: row.quiz_code,
-        duration: `${row.duration_minutes} min`,
-        totalQuestions: row.total_questions,
-        categories: new Map(),
-      });
-    }
-
-    if (row.category_id) {
-      quizMap.get(row.quiz_id).categories.set(row.category_id, {
-        id: row.category_id,
-        name: row.category_name,
-        question_count: row.question_count,
-      });
-    }
-  }
-
-  // Convert Maps → Arrays
-  return Array.from(quizMap.values()).map((quiz) => ({
-    ...quiz,
-    categories: Array.from(quiz.categories.values()),
-  }));
-};
-
-
 export const getAllQuizzesWithSubmissions = async () => {
   const sql = `
     SELECT 
@@ -618,4 +570,219 @@ export const getAllQuizzesWithSubmissions = async () => {
     ...quiz,
     categories: Array.from(quiz.categories.values()),
   }));
+};
+
+export const getAllQuizzes = async () => {
+  const sql = `
+    SELECT 
+      q.id AS quiz_id,
+      q.title,
+      q.quiz_code,
+      q.duration_minutes,
+      q.total_questions,
+
+      qc.category_id,
+      qc.question_count,
+
+      c.name AS category_name
+    FROM quiz q
+    LEFT JOIN quiz_question_config qc ON q.id = qc.quiz_id
+    LEFT JOIN question_category c ON qc.category_id = c.id
+    ORDER BY q.id
+  `;
+
+  const [rows] = await db.query(sql);
+
+  const quizMap = new Map();
+
+  for (const row of rows) {
+    if (!quizMap.has(row.quiz_id)) {
+      quizMap.set(row.quiz_id, {
+        id: row.quiz_id,
+        title: row.title,
+        quiz_code: row.quiz_code,
+        duration: `${row.duration_minutes} min`,
+        totalQuestions: row.total_questions,
+        categories: new Map(),
+      });
+    }
+
+    if (row.category_id) {
+      quizMap.get(row.quiz_id).categories.set(row.category_id, {
+        id: row.category_id,
+        name: row.category_name,
+        question_count: row.question_count,
+      });
+    }
+  }
+
+  // Convert Maps → Arrays
+  return Array.from(quizMap.values()).map((quiz) => ({
+    ...quiz,
+    categories: Array.from(quiz.categories.values()),
+  }));
+};
+
+
+export const getQuizFullSubmissionReport = async (quizId) => {
+  const conn = await db.getConnection();
+
+  try {
+    /* 1️⃣ Quiz info */
+    const [[quiz]] = await conn.query(
+      `SELECT id, title FROM quiz WHERE id = ?`,
+      [quizId]
+    );
+
+    if (!quiz) throw new Error("Quiz not found");
+
+    /* 2️⃣ All submitted attempts + student info */
+    const [attempts] = await conn.query(
+      `SELECT 
+          qa.id AS attempt_id,
+          qa.start_time,
+          qa.end_time,
+          qa.submitted,
+          qa.total_score,
+          qa.percentage,
+
+          u.id AS student_id,
+          u.name AS student_name,
+          d.name AS department
+       FROM quiz_attempt qa
+       JOIN users u ON qa.user_id = u.id
+       LEFT JOIN departments d ON u.department_id = d.id
+       WHERE qa.quiz_id = ?
+         AND qa.submitted = TRUE
+       ORDER BY qa.end_time DESC`,
+      [quizId]
+    );
+
+    if (attempts.length === 0) {
+      return {
+        quiz,
+        totalSubmissions: 0,
+        submissions: []
+      };
+    }
+
+    /* 3️⃣ Categories in this quiz */
+    const [categories] = await conn.query(
+      `SELECT DISTINCT c.id, c.name
+       FROM quiz_question_config qc
+       JOIN question_category c ON qc.category_id = c.id
+       WHERE qc.quiz_id = ?`,
+      [quizId]
+    );
+
+    /* 4️⃣ All category results for all attempts (single query) */
+    const attemptIds = attempts.map(a => a.attempt_id);
+
+    const [sectionResults] = await conn.query(
+      `SELECT attempt_id, category_id, total_questions, correct_answers, percentage
+       FROM quiz_section_result
+       WHERE attempt_id IN (?)`,
+      [attemptIds]
+    );
+
+    /* 5️⃣ Build final response */
+    const submissions = attempts.map((a) => {
+      const categoryReport = categories.map((cat) => {
+        const result = sectionResults.find(
+          r => r.attempt_id === a.attempt_id && r.category_id === cat.id
+        );
+
+        return {
+          categoryId: cat.id,
+          categoryName: cat.name,
+          totalQuestions: result?.total_questions || 0,
+          correctAnswers: result?.correct_answers || 0,
+          percentage: result?.percentage || 0
+        };
+      });
+
+      return {
+        student: {
+          id: a.student_id,
+          name: a.student_name,
+          department: a.department
+        },
+        attempt: {
+          attemptId: a.attempt_id,
+          startTime: a.start_time,
+          endTime: a.end_time,
+          submitted: a.submitted,
+          totalScore: a.total_score,
+          percentage: a.percentage
+        },
+        categories: categoryReport
+      };
+    });
+
+    return {
+      quiz: {
+        id: quiz.id,
+        title: quiz.title
+      },
+      totalSubmissions: submissions.length,
+      submissions
+    };
+  } finally {
+    conn.release();
+  }
+};
+
+export const deleteQuizSubmissionReport = async (quizId, userId) => {
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 1️⃣ Get attempt ID using quizId + userId
+    const [[attempt]] = await conn.query(
+      `
+      SELECT id 
+      FROM quiz_attempt 
+      WHERE quiz_id = ? AND user_id = ?
+      `,
+      [quizId, userId]
+    );
+
+    if (!attempt) {
+      throw new Error("Quiz attempt not found for this student");
+    }
+
+    const attemptId = attempt.id;
+
+    // 2️⃣ Delete section results
+    await conn.query(
+      `DELETE FROM quiz_section_result WHERE attempt_id = ?`,
+      [attemptId]
+    );
+
+    // 3️⃣ Delete answers
+    await conn.query(
+      `DELETE FROM quiz_attempt_answers WHERE attempt_id = ?`,
+      [attemptId]
+    );
+
+    // 4️⃣ Delete locked questions
+    await conn.query(
+      `DELETE FROM quiz_attempt_questions WHERE attempt_id = ?`,
+      [attemptId]
+    );
+
+    // 5️⃣ Delete main attempt
+    await conn.query(
+      `DELETE FROM quiz_attempt WHERE id = ?`,
+      [attemptId]
+    );
+
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 };

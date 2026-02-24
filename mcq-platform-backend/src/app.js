@@ -23,6 +23,6 @@ app.use("/api/students", studentRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the MCQ Platform API");
-});
+});   
 
 export default app;

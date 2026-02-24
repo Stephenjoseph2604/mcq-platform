@@ -20,37 +20,50 @@ export const getAllStudents = async (req, res) => {
 };
 
 // GET student by ID
-export const getStudentById = (req, res) => {
-  const { id } = req.params;
+export const getStudentById = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  const sql = `
-    SELECT id, name, email, mobile, department_id, is_email_verified, created_at
-    FROM users
-    WHERE id = ?
-  `;
+    const sql = `
+      SELECT id, name, email, mobile, department_id, 
+             is_email_verified, created_at
+      FROM users
+      WHERE id = ?
+    `;
 
-  pool.query(sql, [id], (err, result) => {
-    if (err) return error(res, "Database error", err);
+    const [rows] = await pool.query(sql, [id]);
 
-    if (result.length === 0)
+    if (rows.length === 0) {
       return error(res, "Student not found", null, 404);
+    }
 
-    res.json(result[0]);
-  });
+    return success(res, "Student fetched successfully", rows[0]);
+  } catch (err) {
+    console.error(err);
+    return error(res, "Database error");
+  }
 };
 
 // DELETE student
-export const deleteStudent = (req, res) => {
-  const { id } = req.params;
+export const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  const sql = `DELETE FROM users WHERE id = ?`;
+    if (!id) {
+      return error(res, "Student ID is required", null, 400);
+    }
 
-  pool.query(sql, [id], (err, result) => {
-    if (err) return error(res, "Database error", err);
+    const sql = `DELETE FROM users WHERE id = ?`;
 
-    if (result.affectedRows === 0)
+    const [result] = await pool.query(sql, [id]);
+
+    if (result.affectedRows === 0) {
       return error(res, "Student not found", null, 404);
+    }
 
     return success(res, "Student deleted successfully");
-  });
+  } catch (err) {
+    console.error(err);
+    return error(res, "Database error");
+  }
 };
