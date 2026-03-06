@@ -18,6 +18,8 @@ import { decryptId } from "../../utils/encryption";
 import { quizAPI } from "../../services/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUser } from "../../utils/auth";
+import Loader from "../../components/Loader";
+import DotGrid from "../../components/DotGrid";
 
 // const quizData = {
 //   attemptId: 3,
@@ -262,7 +264,7 @@ const QuizTest = () => {
         console.log(`Starting quiz ${quizId} for student ${user.id}`);
 
         const response = await quizAPI.startQuiz(quizId, user.id);
-        console.log(response);
+
         if (response.data.data.alreadySubmitted) {
           setQuizAlreadySubmitted(true);
           return;
@@ -403,7 +405,18 @@ const QuizTest = () => {
 
   const handleSubmit = async () => {
     if (!attemptId) {
-      toast.error("Invalid attempt ID");
+      alert("Invalid attempt ID");
+      return;
+    }
+
+    // ✅ CHECK IF ALL QUESTIONS HAVE ANSWERS
+    const answeredCount = Object.keys(answers).length;
+
+    if (answeredCount !== questions.length) {
+      alert(
+        `Please attend all ${questions.length} questions!\n\n` +
+          `Answered: ${answeredCount} / ${questions.length}`,
+      );
       return;
     }
 
@@ -465,7 +478,7 @@ const QuizTest = () => {
   // const handleWindowStateChange = useCallback(() => {
   //   // Check if window is truly minimized/invisible
   //   const isMinimized = !document.hasFocus() && document.hidden;
-    
+
   //   if (isMinimized && !hasShownMinimizeAlert.current) {
   //     alert('Please keep browser window active and visible!');
   //     hasShownMinimizeAlert.current = true;
@@ -475,8 +488,8 @@ const QuizTest = () => {
   // // ULTRA-RELIABLE MINIMIZE DETECTION
   // const handleWindowBlur = useCallback(() => {
   //   // Double-check with multiple conditions
-  //   const isLikelyMinimized = 
-  //     !document.hasFocus() || 
+  //   const isLikelyMinimized =
+  //     !document.hasFocus() ||
   //     document.hidden ||
   //     (window.innerWidth === 0 || window.innerHeight === 0);
 
@@ -496,15 +509,15 @@ const QuizTest = () => {
   //   // Back button
   //   window.history.pushState(null, '', window.location.href);
   //   window.addEventListener('popstate', handleBackButton);
-    
+
   //   // Tab switching
   //   document.addEventListener('visibilitychange', handlePageVisibility);
-    
+
   //   // Minimize detection - TRIPLE PROTECTION
   //   window.addEventListener('blur', handleWindowBlur);
   //   window.addEventListener('focus', handleWindowFocus);
   //   document.addEventListener('visibilitychange', handleWindowStateChange);
-    
+
   //   // Polling backup for stubborn browsers (runs every 500ms)
   //   const checkMinimizeInterval = setInterval(() => {
   //     if (!document.hasFocus() && document.hidden && !hasShownMinimizeAlert.current) {
@@ -525,8 +538,9 @@ const QuizTest = () => {
   // ✅ NEW: Already submitted UI
   if (quizAlreadySubmitted) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
-        <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
+      <div className="min-h-screen bg-bg/50 pt-20 flex items-center justify-center px-4">
+        <DotGrid />
+        <div className="text-center bg-[var(--color-card)]/50 border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
           <div className="w-24 h-24 bg-yellow-500/20 border-4 border-yellow-500/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
             <ShieldCheck className="h-12 w-12 text-yellow-500" />
           </div>
@@ -537,7 +551,7 @@ const QuizTest = () => {
             You've already completed this quiz.
           </p>
           <button
-            onClick={() => navigate('/quiz')}
+            onClick={() => navigate("/quiz")}
             className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             View Quizzes
@@ -548,23 +562,18 @@ const QuizTest = () => {
   }
 
   // Loading state
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
-  //       <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto mb-4"></div>
-  //         <p className="text-[var(--color-text)]">Loading quiz...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return <Loader message="Fetching Quiz..." />;
+  }
   // Error state
-  if (error || !quizData) {
+  if (error) {
     return (
       <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
         <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full">
-          <div className="w-24 h-24 bg-red-500/20 border-4 border-red-500/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
-            <div className="text-red-500">!</div>
+          <div className="w-24 h-24 bg-[var(--color-danger)]/20 border-4 border-[var(--color-danger)]/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <div className="text-3xl font-bold text-[var(--color-danger)]">
+              !
+            </div>
           </div>
           <h1 className="text-2xl font-bold text-[var(--color-text)] mb-4">
             Error
@@ -574,7 +583,7 @@ const QuizTest = () => {
           </p>
           <button
             onClick={() => window.history.back()}
-            className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-xl hover:bg-[var(--color-primary)]/90"
+            className="px-6 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             Go Back
           </button>
@@ -584,10 +593,11 @@ const QuizTest = () => {
   }
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-bg pt-20 flex items-center justify-center px-4">
+        <DotGrid />
         <div className="text-center bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-12 shadow-2xl max-w-md w-full max-h-[80vh] overflow-auto">
-          <div className="w-24 h-24 bg-green-500/20 border-4 border-green-500/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
-            <CheckCircle className="h-12 w-12 text-green-500" />
+          <div className="w-24 h-24 bg-[var(--color-success)]/20 border-4 border-[var(--color-success)]/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <CheckCircle className="h-12 w-12 text-[var(--color-success)]" />
           </div>
           <h1 className="text-3xl font-bold text-[var(--color-text)] mb-4">
             Quiz Submitted!
@@ -596,7 +606,7 @@ const QuizTest = () => {
             Check your console for submitted answers.
           </p>
           <button
-            onClick={() => navigate('/quiz')}
+            onClick={() => navigate("/quiz")}
             className="px-8 py-3 bg-gradient-to-r active:scale-90 from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
           >
             Go Back to Quizzes
@@ -611,19 +621,12 @@ const QuizTest = () => {
   return (
     <div className="min-h-screen bg-transparent pt-20 px-4 sm:px-6 lg:px-8 relative">
       {/* Dot Grid Background */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, var(--color-muted) 1px, transparent 0),
-                             radial-gradient(circle at 25px 25px, var(--color-muted) 1px, transparent 0)`,
-          backgroundSize: "50px 50px",
-        }}
-      />
+      <DotGrid />
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-7 pb-10 items-stretch">
-        {/* Left: Question Area - RELATIVE HEIGHTS, PERFECT FIT */}
+        {/* Left: Question Area */}
         <div className="flex-1 lg:max-w-5xl">
-          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl  flex flex-col">
-            {/* Header - flexible but capped */}
+          <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-4 lg:p-6 shadow-xl flex flex-col">
+            {/* Header */}
             <div className="flex-shrink-0 pb-4 lg:pb-6 min-h-[64px] lg:min-h-[80px] max-h-[80px]">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between h-full gap-3 lg:gap-0">
                 <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
@@ -646,9 +649,9 @@ const QuizTest = () => {
               </div>
             </div>
 
-            {/* Question Text - flexible with scroll - COPY PROTECTED */}
+            {/* Question Text */}
             <div
-              className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent pr-1"
+              className="flex-shrink-0 min-h-[72px] lg:min-h-[75px] max-h-[120px] mb-3 lg:mb-5 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--color-muted)]/50 scrollbar-track-transparent pr-1"
               style={{
                 WebkitUserSelect: "none",
                 MsUserSelect: "none",
@@ -670,7 +673,7 @@ const QuizTest = () => {
               </h2>
             </div>
 
-            {/* Options - take remaining space (no h-[60%] / max-h) - COPY PROTECTED */}
+            {/* Options */}
             <div className="flex-1 min-h-[200px] lg:min-h-[250px] mb-3 lg:mb-6 space-y-1.5 lg:space-y-2.5 flex flex-col overflow-hidden">
               {[
                 { key: "a", label: "A", value: currentQuestion.option_a },
@@ -698,7 +701,7 @@ const QuizTest = () => {
                     onChange={() =>
                       handleOptionSelect(currentQuestion.id, label)
                     }
-                    className="w-4 h-4 lg:w-5 lg:h-5 mt-0.5 lg:mt-1 text-[var(--color-primary)] bg-white focus:ring-[var(--color-primary)] rounded-full group-hover:border-[var(--color-primary)]/70 transition-all duration-200 mr-2.5 lg:mr-3 flex-shrink-0"
+                    className="w-4 h-4 lg:w-5 lg:h-5 mt-0.5 lg:mt-1 text-[var(--color-primary)] bg-[var(--color-surface)] focus:ring-[var(--color-primary)] rounded-full group-hover:border-[var(--color-primary)]/70 transition-all duration-200 mr-2.5 lg:mr-3 flex-shrink-0 border-[var(--color-muted)]/50"
                   />
                   <span
                     className="text-sm lg:text-base font-medium text-[var(--color-text)] group-hover:text-[var(--color-primary)] leading-relaxed flex-1 min-w-0 truncate pt-0.5 select-none"
@@ -714,7 +717,7 @@ const QuizTest = () => {
               ))}
             </div>
 
-            {/* Buttons - fixed height at bottom */}
+            {/* Buttons */}
             <div className="flex-shrink-0 min-h-[56px] lg:min-h-[64px] pt-2 lg:pt-4 border-t border-[var(--color-muted)]/30">
               <div className="flex gap-2 lg:gap-3 h-full px-1 -mx-0.5">
                 <button
@@ -749,7 +752,7 @@ const QuizTest = () => {
           </div>
         </div>
 
-        {/* Right: Compact Question Status Panel - 4 Column Grid */}
+        {/* Right: Question Status Panel - Marked Questions = Yellow */}
         <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 h-full order-2 lg:order-1 mt-6 lg:mt-0 lg:sticky lg:top-4">
           <div className="bg-[var(--color-card)] border border-[var(--color-muted)]/50 rounded-2xl p-3 lg:p-4 shadow-xl lg:max-h-none flex flex-col gap-2 lg:gap-4">
             <div className="text-center mb-3 lg:mb-4">
@@ -761,25 +764,35 @@ const QuizTest = () => {
               </p>
             </div>
 
-            {/* 4 Column Compact Question Grid */}
-            <div className="grid grid-cols-5 md:grid-cols-8 lg:grid-cols-5 gap-3 lg:gap-2">
+            {/* Question Grid */}
+            <div className="grid grid-cols-5 md:grid-cols-8 lg:grid-cols-5 gap-2 lg:gap-2.5">
               {questions.map((q, i) => {
                 const status = questionStatus[q.id];
                 const isCurrent = q.id === currentQuestion.id;
+
+                let buttonClass =
+                  "aspect-square text-[9px] lg:text-[10px] font-bold flex items-center justify-center rounded-md transition-all duration-200 p-0.5 lg:p-1 hover:scale-105 active:scale-95";
+
+                if (isCurrent) {
+                  buttonClass +=
+                    " bg-[var(--color-primary)] text-white shadow-sm ring-1 ring-[var(--color-primary)]/40 border border-[var(--color-primary)]";
+                } else if (status === "answered") {
+                  buttonClass +=
+                    " bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/40 hover:bg-[var(--color-success)]/30";
+                } else if (status === "review") {
+                  // MARKED = YELLOW
+                  buttonClass +=
+                    " bg-[var(--color-secondary)]/20 text-[var(--color-secondary)] border-2 border-[var(--color-secondary)]/50 hover:bg-[var(--color-secondary)]/40 animate-pulse";
+                } else {
+                  buttonClass +=
+                    " bg-[var(--color-muted)]/20 text-[var(--color-text-muted)] border border-[var(--color-muted)]/30 hover:bg-[var(--color-muted)]/40";
+                }
 
                 return (
                   <button
                     key={q.id}
                     onClick={() => goReviewQuestion(q.id)}
-                    className={`aspect-square text-[9px] lg:text-[10px] font-bold flex items-center justify-center rounded-md transition-all duration-200 p-0.5 lg:p-1 hover:scale-105 active:scale-95 ${
-                      isCurrent
-                        ? "bg-[var(--color-primary)] text-white shadow-sm ring-1 ring-[var(--color-primary)]/40 border border-[var(--color-primary)]"
-                        : status === "answered"
-                          ? "bg-green-400/20 text-green-700 border border-green-400/40 hover:bg-green-400/30"
-                          : status === "review"
-                            ? "bg-yellow-400/20 text-yellow-700 border-2 border-yellow-400/50 hover:bg-yellow-400/40 animate-pulse"
-                            : "bg-gray-100/50 text-gray-600 border border-gray-200/50 hover:bg-gray-200/50"
-                    }`}
+                    className={buttonClass}
                     title={`Question ${q.id}`}
                   >
                     {i + 1}
@@ -788,13 +801,13 @@ const QuizTest = () => {
               })}
             </div>
 
-            {/* Compact Dynamic Summary */}
+            {/* Summary */}
             <div className="text-xs space-y-1 pt-2 lg:pt-3 border-t border-[var(--color-muted)]/30 mt-auto px-1">
               <div className="flex justify-between items-center py-0.5">
                 <span className="text-[var(--color-text-muted)] truncate">
                   Answered:
                 </span>
-                <span className="font-semibold text-green-600 px-1 py-0.5 bg-green-400/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
+                <span className="font-semibold text-[var(--color-success)] px-1 py-0.5 bg-[var(--color-success)]/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {Object.keys(answers).length}
                 </span>
               </div>
@@ -802,7 +815,7 @@ const QuizTest = () => {
                 <span className="text-[var(--color-text-muted)] truncate">
                   Review:
                 </span>
-                <span className="font-semibold text-yellow-600 px-1 py-0.5 bg-yellow-400/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
+                <span className="font-semibold text-[var(--color-secondary)] px-1 py-0.5 bg-[var(--color-secondary)]/10 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {
                     Object.values(questionStatus).filter((s) => s === "review")
                       .length
@@ -813,7 +826,7 @@ const QuizTest = () => {
                 <span className="text-[var(--color-text-muted)] truncate">
                   Remaining:
                 </span>
-                <span className="font-semibold text-[var(--color-text)] px-1 py-0.5 bg-gray-100/50 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
+                <span className="font-semibold text-[var(--color-text)] px-1 py-0.5 bg-[var(--color-muted)]/20 rounded-md text-[10px] lg:text-[11px] min-w-[24px] text-center">
                   {totalQuestions -
                     Object.keys(answers).length -
                     Object.values(questionStatus).filter((s) => s === "review")

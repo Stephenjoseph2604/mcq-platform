@@ -21,7 +21,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-
     return Promise.reject(error);
   },
 );
@@ -30,41 +29,62 @@ export const authAPI = {
   sendOTP: (email) => api.post("/auth/send-otp", { email }),
   verifyOTPRegister: (data) => api.post("/auth/verify-otp-register", data),
   login: (credentials) => api.post("/auth/login", credentials),
+
   adminLogin: (credentials) => api.post("/auth/admin/login", credentials), // ✅
+
+  // Admin registration APIs
+  adminSendOtp: (emailData) => api.post("/auth/admin/send-otp", emailData),
+  adminVerifyOtp: (registerData) =>
+    api.post("/auth/admin/verify-otp", registerData),
 };
 
 export const studentAPI = {
   // Get all students
-  getAll: () => api.get("/students/", {
-    headers: { Authorization: `Bearer ${getAdminToken()}` },
-  }),
+  getAll: () =>
+    api.get("/students/", {
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    }),
   // Delete student (implement this endpoint in backend)
-  delete: (id) => api.delete(`/students/${id}`, {
-    headers: { Authorization: `Bearer ${getAdminToken()}` },
-  }),
+  delete: (id) =>
+    api.delete(`/students/${id}`, {
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    }),
 };
 
 export const departmentAPI = {
   // Get all departments
-  getAll: () => api.get("/departments",{
+  getAll: () =>
+    api.get("/departments", {
       headers: { Authorization: `Bearer ${getToken()}` },
     }),
   // Create new department
-  create: (code, name) => api.post("/departments", { code, name },{
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    }),
+  create: (code, name) =>
+    api.post(
+      "/departments",
+      { code, name },
+      {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      },
+    ),
   // Update department
-  update: (id, code, name) => api.put(`/departments/${id}`, { code, name },{
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    }),
+  update: (id, code, name) =>
+    api.put(
+      `/departments/${id}`,
+      { code, name },
+      {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      },
+    ),
   // Delete department
-  delete: (id) => api.delete(`/departments/${id}`,{
+  delete: (id) =>
+    api.delete(`/departments/${id}`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
 };
 
 export const quizAPI = {
-  getQuizzes: () => api.get("/quiz",{
+  getQuizzes: () =>
+    api.get("/quiz", {
       headers: { Authorization: `Bearer ${getToken() || getAdminToken()}` },
     }),
   getCategories: () =>
@@ -108,6 +128,66 @@ export const adminAPI = {
       },
     });
   },
+  getPendingAdminRequests: () =>
+    api.get("/auth/admin/admin-requests/pending", {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+  getAdminRequestHistory: () =>
+    api.get("/auth/admin/admin-requests", {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+  acceptAdminRequest: (id) =>
+    api.post(
+      `/auth/admin/approve/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+      },
+    ),
+  rejectAdminRequest: (id) =>
+    api.post(
+      `/auth/admin/reject/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+      },
+    ),
+  deleteAdminRequest: (id) =>
+    api.delete(`/auth/admin/requests/${id}`, {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+
+  getEmployees: () =>
+    api.get("/auth/admin/all", {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+  activateEmployee: (id) => api.patch(`/auth/admin/activate/${id}`,{}, {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+  deactivateEmployee: (id) => api.patch(`/auth/admin/deactivate/${id}`,{}, {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
+  deleteEmployee: (id) => api.delete(`/auth/admin/${id}`, {
+      headers: {
+        Authorization: `Bearer ${getAdminToken()}`,
+      },
+    }),
 };
 
 export const questionsAPI = {
@@ -131,61 +211,77 @@ export const questionsAPI = {
     console.log(departmentId);
     // For technical category, send department_id in body
 
-    return api.get(
-      `/questions/category/${categoryId}`,
-      {
-        params: { department_id: departmentId },
-        headers: { Authorization: `Bearer ${getAdminToken()}` },
-      },
- 
-    );
+    return api.get(`/questions/category/${categoryId}`, {
+      params: { department_id: departmentId },
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    });
   },
   // NEW: Update question (PATCH with partial fields)
   updateQuestion: (questionId, updatedFields) =>
-    api.put(`/questions/${questionId}`, updatedFields,{
+    api.put(`/questions/${questionId}`, updatedFields, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
 
   // NEW: Delete question
-  deleteQuestion: (questionId) => api.delete(`/questions/${questionId}`,{
+  deleteQuestion: (questionId) =>
+    api.delete(`/questions/${questionId}`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   // Bulk load questions (you'll need this endpoint later)
-  bulkLoadQuestions: (data) => api.post("/questions/bulk-load", data,{
+  bulkLoadQuestions: (data) =>
+    api.post("/questions/bulk-load", data, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
 };
 
 export const reportAPI = {
   // Get all quizzes
-  getQuizzes: () => api.get("/quiz/quizzes",{
+  getQuizzes: () =>
+    api.get("/quiz/quizzes", {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   // Add other report endpoints as needed
-  getQuizReport: (quizId) => api.get(`/quiz/report/full/${quizId}`,{
+  getQuizReport: (quizId) =>
+    api.get(`/quiz/report/full/${quizId}`, {
+      headers: { Authorization: `Bearer ${getAdminToken()}` },
+    }),
+  deleteSubmission: (quizId, studentId) =>
+    api.delete(`/quiz/report/${quizId}/${studentId}`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   getStudentReport: (quizId, studentId) =>
-    api.get(`/quiz/report/${quizId}/${studentId}`,{
+    api.get(`/quiz/report/${quizId}/${studentId}`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
 };
 
 export const categoriesAPI = {
   // Get all categories
-  getAll: () => api.get("/categories/",{
+  getAll: () =>
+    api.get("/categories/", {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
   // Create new category
-  create: (name) => api.post("/categories/", { name },{
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    }),
+  create: (name) =>
+    api.post(
+      "/categories/",
+      { name },
+      {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      },
+    ),
   // Update category
-  update: (id, name) => api.put(`/categories/${id}`, { name },{
-      headers: { Authorization: `Bearer ${getAdminToken()}` },
-    }),
+  update: (id, name) =>
+    api.put(
+      `/categories/${id}`,
+      { name },
+      {
+        headers: { Authorization: `Bearer ${getAdminToken()}` },
+      },
+    ),
   // Delete category
-  delete: (id) => api.delete(`/categories/${id}`,{
+  delete: (id) =>
+    api.delete(`/categories/${id}`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },
     }),
 };

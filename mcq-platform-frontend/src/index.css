@@ -1,22 +1,244 @@
 @import "tailwindcss";
 
+/* Light theme utilities */
 
-
-@theme {
+/* @theme {
   --color-primary: #2b2e33;
   --color-secondary: #7b7f85;
   --color-muted: #c1c4c8;
   --color-surface: #f5f6f7;
-  
-  /* Light theme utilities */
   --color-bg: #ffffff;
   --color-card: #fafbfc;
   --color-text: #2b2e33;
   --color-text-muted: #7b7f85;
+} */
+
+@theme {
+  /* Luxury Purple Violet Core Palette */
+  --color-primary: #6b46c1; /* Royal Purple - Deep, regal violet for CTAs, headers, buttons */
+  --color-secondary: #9f7aea; /* Amethyst Glow - Elegant mid-tone purple for hovers, borders */
+  --color-muted: #e9d5ff; /* Lavender Mist - Soft, sophisticated purple tint for backgrounds */
+  --color-surface: #f8f4ff; /* Purple Silk - Ultra-light purple sheen for cards/surfaces */
+
+  /* Black Theme Base WITH WHITE TEXT */
+  --color-bg: #000000; /* Pure Black - Main background */
+  --color-card: #111111; /* Dark Charcoal - Card backgrounds */
+  --color-text: #ffffff; /* Pure White - Primary text (headings, body) */
+  --color-text-muted: #9f7aea; /* Amethyst Glow - Secondary/subtle text */
+
+  /* Enhancement Colors for Icons/Stats */
+  --color-success: #10b981;
+  --color-success-dark: #059669;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b; /* Amber - Warning, alerts */
+  --color-warning-dark: #d97706; /* Dark Amber - Hover, active state */
+  --color-warning-light: #fcd34d; /* Soft Amber - Background highlights */
+  
+  /* Stat Card Gradient Colors */
+  --color-purple-stat: #8b5cf6;
+  --color-purple-stat-light: #a78bfa;
+  --color-emerald-stat: #10b981;
+  --color-emerald-stat-light: #34d399;
+  --color-blue-stat: #3b82f6;
+  --color-blue-stat-light: #60a5fa;
+  --color-orange-stat: #f59e0b;
+  --color-orange-stat-light: #fbbf24;
+  --color-indigo-stat: #6366f1;
+  --color-indigo-stat-light: #818cf8;
+
+  /* RGB versions for calendar */
+  --color-card-rgb: 17, 17, 17;
 }
-*{
-   font-family: "Montserrat", sans-serif;
+/* =======Light Theme  */
+
+
+.btn-color {
+  background: linear-gradient(
+    to right,
+    var(--color-primary) 10%,
+    rgba(0, 0, 0, 0)
+  );
+  transition: 0.1s linear;
 }
-body{
+.btn-color:hover {
+  background: var(--color-primary);
+}
+.bg-linear-primary-dark * {
+  color: var(--color-text) !important;
+}
+
+/* Custom Animations for Pure Tailwind */
+@keyframes float-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(20px, -20px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-25deg);
+  }
+  100% {
+    transform: translateX(300%) skewX(-25deg);
+  }
+}
+
+/* Tailwind Animation Utilities */
+.animate-float-in {
+  animation: float-in 0.8s ease-out forwards;
+}
+.animate-blob {
+  animation: blob 10s infinite;
+}
+
+/* Custom animation delays */
+.blob-delay-2 {
+  animation: blob 10s infinite 2s;
+}
+.blob-delay-4 {
+  animation: blob 10s infinite 4s;
+}
+.blob-delay-6 {
+  animation: blob 10s infinite 6s;
+}
+.float-in-custom {
+  animation: float-in 0.8s ease-out forwards;
+}
+
+/* Shine Effect */
+.shine-container {
+  position: relative;
+  overflow: hidden;
+}
+.shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  animation: shine 2s infinite;
+}
+
+.react-calendar-custom :global(.react-calendar) {
+  border: none !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  background: rgb(var(--color-card-rgb)) !important;
+  color: var(--color-text) !important;
+}
+.react-calendar-custom :global(.react-calendar__navigation) {
+  margin-bottom: 1rem !important;
+  height: 2rem !important;
+}
+.react-calendar-custom :global(.react-calendar__navigation__label) {
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  color: var(--color-text) !important;
+}
+.react-calendar-custom :global(.react-calendar__tile) {
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 0.5rem !important;
+  margin: 0.125rem !important;
+  height: 3rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 600 !important;
+  color: var(--color-text-muted) !important;
+  transition: all 0.2s !important;
+  border: 1px solid var(--color-muted) / 20 !important;
+  background: var(--color-card) !important;
+}
+.react-calendar-custom :global(.react-calendar__tile:enabled:hover),
+.react-calendar-custom :global(.react-calendar__tile:enabled:focus) {
+  background: var(--color-muted) / 10 !important;
+  border-radius: 0.75rem !important;
+  color: var(--color-text) !important;
+}
+.react-calendar-custom :global(.highlight) {
+  background: linear-gradient(
+    135deg,
+    var(--color-success),
+    var(--color-success-dark)
+  ) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-success) !important;
+}
+.react-calendar-custom :global(.react-calendar__tile--active) {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary),
+    var(--color-secondary)
+  ) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-primary) !important;
+}
+/* ==============  Basic Reset ================ */
+
+* {
+  font-family: "Montserrat", sans-serif;
+}
+body {
   overflow-x: hidden;
+  background-color: var(--color-bg);
+}
+/* Chrome, Edge, Safari */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+/* ===== Scrollbar for WebKit browsers (Chrome, Edge, Safari) ===== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg); /* Black background */
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    var(--color-primary),
+    var(--color-secondary)
+  );
+  border-radius: 10px;
+  border: 2px solid var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+/* ===== Firefox scrollbar ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) var(--color-bg);
 }

@@ -1,37 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Clock, 
-  BookOpen, 
-  Tag, 
-  Play, 
-  AlertCircle, 
-  CheckCircle, 
-  Loader2 
-} from 'lucide-react';
-import { quizAPI } from '../../services/api';
-import { encryptId } from '../../utils/encryption';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Clock,
+  BookOpen,
+  Tag,
+  Play,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
+import { quizAPI } from "../../services/api";
+import { encryptId } from "../../utils/encryption";
+import Loader from "../../components/Loader";
+import DotGrid from "../../components/DotGrid";
+import FloatingParticles from "../../components/FloatingParticles";
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         const response = await quizAPI.getQuizzes();
-        
+
         if (response.data.success) {
           setQuizzes(response.data.data);
         } else {
-          setError(response.data.message || 'Failed to fetch quizzes');
+          setError(response.data.message || "Failed to fetch quizzes");
         }
       } catch (err) {
-        setError('Failed to load quizzes. Please try again.');
+        setError("Failed to load quizzes. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -40,34 +43,25 @@ const QuizPage = () => {
     fetchQuizzes();
   }, [navigate]);
 
-const handleStartQuiz = (quizId) => {
-  console.log(`Start Quiz ID: ${quizId}`);
-  const encryptedQuizId = encryptId(quizId);
-  navigate(`/quiz/${encryptedQuizId}`);
-};
+  const handleStartQuiz = (quizId) => {
+    console.log(`Start Quiz ID: ${quizId}`);
+    const encryptedQuizId = encryptId(quizId);
+    navigate(`/quiz/${encryptedQuizId}`);
+  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--color-surface)] pt-20 flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-[var(--color-primary)] mx-auto mb-4" />
-        <p className="text-xl text-[var(--color-text-muted)]">Loading quizzes...</p>
-      </div>
-    );
-  }
+ if (loading) {
+  return (
+      <Loader message="Fetching Quiz..." />
+  );
+}
+
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--color-bg)] pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Fixed Dot Grid Background */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 1px 1px, var(--color-muted) 1px, transparent 0),
-            radial-gradient(circle at 25px 25px, var(--color-muted) 1px, transparent 0)
-          `,
-          backgroundSize: "50px 50px",
-        }}
-      />
+    
+    <DotGrid/>
+    <FloatingParticles/>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -83,10 +77,12 @@ const handleStartQuiz = (quizId) => {
         {/* Error Message */}
         {error && (
           <div className="max-w-2xl mx-auto mb-12">
-            <div className="bg-red-50/80 border border-red-200/50 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
-              <AlertCircle className="h-6 w-6 text-red-500 flex-shrink-0" />
+            <div className="bg-[var(--color-card)]/80 border border-[var(--color-primary)]/30 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
+              <AlertCircle className="h-6 w-6 text-[var(--color-primary)] flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-[var(--color-text)] mb-1">Error</h3>
+                <h3 className="font-semibold text-[var(--color-text)] mb-1">
+                  Error
+                </h3>
                 <p className="text-[var(--color-text-muted)]">{error}</p>
               </div>
             </div>
@@ -97,7 +93,9 @@ const handleStartQuiz = (quizId) => {
         {quizzes.length === 0 && !loading && !error && (
           <div className="text-center py-24">
             <BookOpen className="h-24 w-24 text-[var(--color-muted)] mx-auto mb-8 opacity-50" />
-            <h2 className="text-3xl font-bold text-[var(--color-text)] mb-4">No quizzes available</h2>
+            <h2 className="text-3xl font-bold text-[var(--color-text)] mb-4">
+              No quizzes available
+            </h2>
             <p className="text-xl text-[var(--color-text-muted)] max-w-md mx-auto">
               Check back later for new quizzes
             </p>
@@ -109,11 +107,11 @@ const handleStartQuiz = (quizId) => {
           {quizzes.map((quiz) => (
             <div
               key={quiz.id}
-              className="group bg-[var(--color-card)] relative border border-[var(--color-muted)]/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden hover:border-[var(--color-primary)]/30"
+              className="group bg-[var(--color-card)]/50 relative border border-[var(--color-muted)]/50 rounded-2xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden hover:border-[var(--color-primary)]/30"
             >
               {/* Decorative Blob */}
-              <div className="h-15 w-15 blur-lg rounded-full bg-[var(--color-primary)] absolute -top-5 -right-5" />
-              
+              <div className="h-15 w-15 blur-lg rounded-full bg-[var(--color-primary)]/30 absolute -top-5 -right-5" />
+
               {/* Quiz Card Content */}
               <div className="space-y-6">
                 {/* Title */}
@@ -138,7 +136,7 @@ const handleStartQuiz = (quizId) => {
                   {quiz.categories.slice(0, 4).map((category, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors duration-200 flex items-center gap-1"
+                      className="px-3 py-1.5 bg-[var(--color-primary)]/15 border border-[var(--color-primary)]/30 text-[var(--color-primary)] text-xs font-medium rounded-lg hover:bg-[var(--color-primary)]/25 transition-colors duration-200 flex items-center gap-1"
                     >
                       <Tag className="h-3 w-3 inline -ml-1 mr-1 align-middle flex-shrink-0" />
                       {category.name}
@@ -149,7 +147,7 @@ const handleStartQuiz = (quizId) => {
                 {/* Clean Start Quiz Button */}
                 <button
                   onClick={() => handleStartQuiz(quiz.id)}
-                  className="w-full h-14 bg-primary text-white rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 active:scale-90 transition-all duration-200 group-hover:bg-[var(--color-secondary)]"
+                  className="w-full h-14 bg-gradient-to-r  from-[var(--color-primary)]/80 to-[var(--color-bg)]/20 text-text rounded-4xl font-semibold text-lg shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 active:scale-90 transition-all duration-200"
                 >
                   <span className="flex items-center gap-3">
                     Start Quiz
@@ -159,7 +157,7 @@ const handleStartQuiz = (quizId) => {
               </div>
 
               {/* Subtle card glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/5 to-[var(--color-secondary)]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-secondary)]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur pointer-events-none" />
             </div>
           ))}
         </div>

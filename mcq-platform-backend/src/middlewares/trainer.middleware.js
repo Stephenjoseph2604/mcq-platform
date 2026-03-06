@@ -1,9 +1,5 @@
-
-
-
-export const superAdminOnly = (req, res, next) => {
+export const TrainerOnly = (req, res, next) => {
   const user = req.user;
-
 
   if (!user || user.type !== "ADMIN") {
     return res.status(403).json({
@@ -12,10 +8,10 @@ export const superAdminOnly = (req, res, next) => {
     });
   }
 
-  if (user.role !== "SUPER_ADMIN") {
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN"  && user.role !== "TRAINER") {
     return res.status(403).json({
       success: false,
-      message: "SUPER_ADMIN access only",
+      message: "Access denied",
     });
   }
 

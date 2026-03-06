@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Mail,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,6 +26,7 @@ import "react-calendar/dist/Calendar.css";
 import { format } from "date-fns";
 import { getAdmin } from "../../utils/auth";
 import { adminAPI } from "../../services/api";
+import DotGrid from "../../components/DotGrid";
 
 const sampleData = [
   { name: "English", questions: 25, students: 45 },
@@ -44,7 +46,7 @@ export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const adminData = getAdmin();
-  
+
   // Fallback if no admin data (shouldn't happen if AdminProtectedRoute works)
   const adminProfile = adminData || {
     name: "XXXXXXXX",
@@ -69,9 +71,8 @@ export const AdminDashboard = () => {
         if (response.data.success) {
           // ✅ Extract from response.data.message
           setStats(response.data.message);
-        
         } else {
-          throw new Error(response.data.message || 'Failed to load stats');
+          throw new Error(response.data.message || "Failed to load stats");
         }
       } catch (err) {
         setError(err.message);
@@ -85,136 +86,150 @@ export const AdminDashboard = () => {
   const formatDate = (date) => format(date, "MMM dd, yyyy");
 
   return (
-    <div className=" min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-[var(--color-bg)] p-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-black bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-[var(--color-text-muted)] mt-2">
             Welcome back, {adminProfile.name}!
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-[var(--color-text-muted)]">
             {formatDate(new Date())}
           </span>
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Calendar className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] rounded-2xl flex items-center justify-center shadow-lg">
+            <Calendar className="w-6 h-6 text-[var(--color-text)]" />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 mb-8">
-        {/* Admin Profile Card - Extended Width Only */}
+        {/* Admin Profile Card - Enhanced Theme */}
         <div className="xl:col-span-2">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-6 shadow-2xl hover:shadow-3xl transition-all duration-300">
-            {/* Avatar - Centered */}
+          <div className="bg-[var(--color-card)]/30 relative backdrop-blur-xl border border-[var(--color-muted)]/40 rounded-3xl p-6 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1">
+          
+          <div className="absolute h-15 aspect-square bg-primary rounded-full -top-3 -right-3 blur-2xl animate-pulse"/>
+            {/* Avatar */}
             <div className="flex justify-center mb-6">
               <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl font-bold text-2xl text-white border-4 border-white/30">
-                  {adminProfile.name.charAt(0)}
+                <div className="w-24 h-24 bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-secondary)]/20 rounded-3xl flex items-center justify-center shadow-2xl font-bold text-2xl text-[var(--color-text)] border-3 border-[var(--color-primary)]/40">
+                  {adminProfile.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-md" />
+                <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-[var(--color-success)] rounded-full border-4 border-[var(--color-card)] shadow-md" />
               </div>
             </div>
 
-            {/* Name & Role - BELOW Avatar */}
+            {/* Name & Role */}
             <div className="text-center mb-6 space-y-2">
-              <h3 className="text-2xl font-black text-gray-900 leading-tight truncate">
+              <h3 className="text-2xl font-black bg-gradient-to-r from-[var(--color-text)] to-[var(--color-primary)] bg-clip-text text-transparent leading-tight truncate">
                 {adminProfile.name}
               </h3>
-              <p className="text-blue-600 font-semibold px-4 py-1 bg-blue-50 rounded-xl inline-block">
+              <p className="text-[var(--color-primary)] font-semibold px-4 py-1.5 bg-[var(--color-primary)]/10 rounded-xl inline-block border border-[var(--color-primary)]/30 backdrop-blur-sm shadow-sm">
                 {adminProfile.role}
               </p>
             </div>
 
             {/* Details */}
             <div className="space-y-3 text-sm mb-6">
-              <div className="flex justify-between py-2 px-4 bg-gray-50 rounded-xl">
-                <span className="text-gray-600 font-medium">Email</span>
-                <span className="font-mono text-gray-900 text-base">
-                  {" "}
-                  {/* Removed max-w limit */}
+              <div className="flex justify-between py-2.5 px-4 bg-[var(--color-card)]/50 backdrop-blur-sm rounded-xl border border-[var(--color-muted)]/20 hover:bg-[var(--color-card)] hover:border-[var(--color-primary)]/20 transition-all">
+                <span className="text-[var(--color-text-muted)] font-medium flex items-center gap-2">
+                  <Mail size={14} />
+                  Email
+                </span>
+                <span className="font-mono text-[var(--color-text)] text-base truncate max-w-[60%] text-right">
                   {adminProfile.email}
                 </span>
               </div>
-              <div className="flex justify-between py-2 px-4 bg-gray-50 rounded-xl">
-                <span className="text-gray-600 font-medium">Joined</span>
-                <span className="text-gray-900 font-medium">
-                  {adminProfile.created_at}
+              <div className="flex justify-between py-2.5 px-4 bg-[var(--color-card)]/50 backdrop-blur-sm rounded-xl border border-[var(--color-muted)]/20 hover:bg-[var(--color-card)] hover:border-[var(--color-primary)]/20 transition-all">
+                <span className="text-[var(--color-text-muted)] font-medium flex items-center gap-2">
+                  <Calendar size={14} />
+                  Joined
+                </span>
+                <span className="text-[var(--color-text)] font-medium">
+                  {formatDate(adminProfile.created_at)}
                 </span>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 p-4 text-sm bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 rounded-2xl transition-all shadow-sm hover:shadow-md h-14 font-medium">
-                <Settings size={16} />
+              <button className="group flex items-center justify-center gap-2 p-3.5 text-sm bg-[var(--color-secondary)]/10 hover:bg-[var(--color-secondary)]/20 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md h-14 font-semibold text-[var(--color-secondary)] border border-[var(--color-secondary)]/30 hover:border-[var(--color-secondary)]/40 backdrop-blur-sm hover:scale-[1.02]">
+                <Settings
+                  size={16}
+                  className="group-hover:rotate-12 transition-transform duration-200"
+                />
                 Settings
               </button>
-              <button className="flex items-center justify-center gap-2 p-4 text-sm bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 rounded-2xl transition-all shadow-sm hover:shadow-md h-14 font-medium text-red-700">
-                <LogOut size={16} />
+              <button className="group flex items-center justify-center gap-2 p-3.5 text-sm bg-[var(--color-danger)]/10 hover:bg-[var(--color-danger)]/20 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md h-14 font-semibold text-[var(--color-danger)] border border-[var(--color-danger)]/30 hover:border-[var(--color-danger)]/40 backdrop-blur-sm hover:scale-[1.02]">
+                <LogOut
+                  size={16}
+                  className="group-hover:rotate-180 transition-transform duration-200"
+                />
                 Logout
               </button>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards - Adjusted */}
+        {/* Stats Cards */}
         <div className="xl:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {[
             {
               label: "Categories",
               value: stats.categories,
               icon: BookOpen,
-              color: "from-purple-500 to-pink-500",
+              color: "from-purple-stat",
             },
             {
               label: "Questions",
               value: stats.questions,
               icon: FileText,
-              color: "from-emerald-500 to-teal-500",
+              color: "from-emerald-stat",
             },
             {
               label: "Departments",
               value: stats.departments,
               icon: Users,
-              color: "from-blue-500 to-indigo-500",
+              color: "from-blue-stat",
             },
             {
               label: "Quizzes",
               value: stats.quizzes,
               icon: Award,
-              color: "from-orange-500 to-red-500",
+              color: "from-orange-stat",
             },
             {
               label: "Students",
               value: stats.students,
               icon: BarChart3,
-              color: "from-indigo-500 to-purple-500",
+              color: "from-indigo-stat",
             },
           ].map((stat, index) => (
             <div
               key={index}
-              className="group bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+              className="group bg-[var(--color-card)]/20 backdrop-blur-xl border border-[var(--color-muted)]/30 rounded-3xl p-8 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             >
               <div className="flex items-center justify-between mb-4">
                 <div
-                  className={`p-3 rounded-2xl bg-gradient-to-r ${stat.color} shadow-lg`}
+                  className={`p-3 rounded-2xl bg-linear-to-r ${stat.color} to${stat.color} shadow-lg`}
                 >
-                  <stat.icon className="w-6 h-6 text-white" />
+                  <stat.icon className="w-6 h-6 text-[var(--color-text)]" />
                 </div>
-                <div className="p-2 bg-gray-100 rounded-xl group-hover:bg-gray-200 transition-all">
-                  <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                <div className="p-2 bg-[var(--color-muted)]/20 rounded-xl group-hover:bg-[var(--color-muted)]/30 transition-all">
+                  <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
               <div>
-                <p className="text-3xl font-black text-gray-900 mb-1">
+                <p className="text-3xl font-black text-[var(--color-text)] mb-1">
                   {stat.value}
                 </p>
-                <p className="text-gray-600 font-medium">{stat.label}</p>
+                <p className="text-[var(--color-text-muted)] font-medium">
+                  {stat.label}
+                </p>
               </div>
             </div>
           ))}
@@ -225,9 +240,9 @@ export const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Charts */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-2xl">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <BarChart3 className="w-8 h-8" />
+          <div className="bg-[var(--color-card)]/30 backdrop-blur-xl border border-[var(--color-muted)]/30 rounded-3xl p-8 shadow-2xl">
+            <h3 className="text-2xl font-bold text-[var(--color-text)] mb-6 flex items-center gap-3">
+              <BarChart3 className="w-8 h-8 text-[var(--color-primary)]" />
               Category Analytics
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -235,18 +250,32 @@ export const AdminDashboard = () => {
                 <CartesianGrid
                   vertical={false}
                   strokeDasharray="3 3"
-                  stroke="#f1f5f9"
+                  stroke="var(--color-muted)"
                 />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
                   tickMargin={10}
+                  tick={{ fill: "var(--color-text-muted)" }}
                 />
-                <YAxis axisLine={false} tickLine={false} tickMargin={10} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={10}
+                  tick={{ fill: "var(--color-text-muted)" }}
+                />
                 <Tooltip />
-                <Bar dataKey="questions" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="students" fill="#10b981" radius={[8, 8, 0, 0]} />
+                <Bar
+                  dataKey="questions"
+                  fill="var(--color-primary)"
+                  radius={[8, 8, 0, 0]}
+                />
+                <Bar
+                  dataKey="students"
+                  fill="var(--color-secondary)"
+                  radius={[8, 8, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -254,10 +283,10 @@ export const AdminDashboard = () => {
 
         {/* Cute Calendar */}
         <div className="lg:col-span-1">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-6 shadow-2xl">
+          <div className="bg-[var(--color-card)]/50 backdrop-blur-xl border border-[var(--color-muted)]/30 rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Calendar className="w-6 h-6" />
+              <h3 className="text-xl font-bold text-[var(--color-text)] flex items-center gap-2">
+                <Calendar className="w-6 h-6 text-[var(--color-primary)]" />
                 Schedule
               </h3>
               <div className="flex gap-1 text-sm">
@@ -271,7 +300,7 @@ export const AdminDashboard = () => {
                       ),
                     )
                   }
-                  className="p-1 hover:bg-gray-200 rounded-lg transition-all"
+                  className="p-1 hover:bg-[var(--color-muted)]/20 rounded-lg transition-all text-[var(--color-text-muted)]"
                 >
                   <ChevronLeft size={18} />
                 </button>
@@ -285,7 +314,7 @@ export const AdminDashboard = () => {
                       ),
                     )
                   }
-                  className="p-1 hover:bg-gray-200 rounded-lg transition-all"
+                  className="p-1 hover:bg-[var(--color-muted)]/20 rounded-lg transition-all text-[var(--color-text-muted)]"
                 >
                   <ChevronRight size={18} />
                 </button>
@@ -310,59 +339,17 @@ export const AdminDashboard = () => {
                   highlightedDates.some(
                     (hDate) => hDate.toDateString() === date.toDateString(),
                   ) ? (
-                    <div className="w-2 h-2 bg-green-500 rounded-full mx-auto mt-1" />
+                    <div className="w-2 h-2 bg-[var(--color-success)] rounded-full mx-auto mt-1" />
                   ) : null
                 }
               />
             </div>
-            <p className="text-center mt-4 text-sm text-gray-600">
+            <p className="text-center mt-4 text-sm text-[var(--color-text-muted)]">
               {format(selectedDate, "MMMM yyyy")}
             </p>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .react-calendar-custom :global(.react-calendar) {
-          border: none !important;
-          border-radius: 1rem !important;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
-          background: white !important;
-        }
-        .react-calendar-custom :global(.react-calendar__navigation) {
-          margin-bottom: 1rem !important;
-          height: 2rem !important;
-        }
-        .react-calendar-custom :global(.react-calendar__navigation__label) {
-          font-weight: 700 !important;
-          font-size: 1.1rem !important;
-          color: #1e293b !important;
-        }
-        .react-calendar-custom :global(.react-calendar__tile) {
-          border-radius: 0.75rem !important;
-          padding: 0.75rem 0.5rem !important;
-          margin: 0.125rem !important;
-          height: 3rem !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          font-weight: 600 !important;
-          transition: all 0.2s !important;
-        }
-        .react-calendar-custom :global(.react-calendar__tile:enabled:hover),
-        .react-calendar-custom :global(.react-calendar__tile:enabled:focus) {
-          background: #e0f2fe !important;
-          border-radius: 0.75rem !important;
-        }
-        .react-calendar-custom :global(.highlight) {
-          background: linear-gradient(135deg, #10b981, #059669) !important;
-          color: white !important;
-        }
-        .react-calendar-custom :global(.react-calendar__tile--active) {
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-          color: white !important;
-        }
-      `}</style>
     </div>
   );
 };

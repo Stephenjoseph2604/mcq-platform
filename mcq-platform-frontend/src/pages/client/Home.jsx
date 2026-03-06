@@ -7,6 +7,8 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
+import DotGrid from "../../components/DotGrid";
+import FloatingParticles from "../../components/FloatingParticles";
 
 
 const Home = () => {
@@ -16,150 +18,63 @@ const Home = () => {
     navigate("/quiz");
   };
 
-  return (
-    <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center p-6 sm:p-8 lg:p-12 xl:p-16  relative overflow-hidden">
-      {/* Enhanced Wide Dot Grid Background */}
-      <div
-        className="absolute inset-0 opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 1px 1px, var(--color-muted) 1px, transparent 0),
-            radial-gradient(circle at 25px 25px, var(--color-muted) 1px, transparent 0),
-            radial-gradient(circle at 50px 50px, var(--color-primary) 1px, transparent 0),
-            radial-gradient(circle at 75px 75px, var(--color-secondary) 1px, transparent 0)
-          `,
-          backgroundSize: "80px 80px",
-        }}
-      />
+return (
+  <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-6 sm:p-8 lg:p-12 xl:p-16 relative overflow-hidden">
+    {/* Dot Grid Background */}
+       <DotGrid/>
 
-      {/* Wider Floating Particles - Better Screen Coverage */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -right-10 w-80 h-80 bg-[var(--color-primary)]/10 rounded-full blur-3xl animate-blob"></div>
-        <div className="absolute top-1/4 left-5 w-64 h-64 bg-[var(--color-secondary)]/10 rounded-full blur-3xl animate-blob animation-delay-2s"></div>
-        <div className="absolute bottom-1/4 -left-10 w-96 h-96 bg-[var(--color-primary)]/5 rounded-full blur-3xl animate-blob animation-delay-4s"></div>
-        <div className="absolute top-1/2 right-5 w-72 h-72 bg-[var(--color-secondary)]/8 rounded-full blur-3xl animate-blob animation-delay-6s"></div>
+    {/* Floating Particles */}
+  <FloatingParticles/>
+
+    {/* Main Container */}
+    <div className="relative z-10 text-center max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full space-y-8 px-4 sm:px-6 lg:px-8 pt-10">
+      {/* Main Icon */}
+      <div className={`w-28 h-28 bg-[var(--color-card)]/10 border-4 border-[var(--color-primary)]/30 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto shadow-2xl group hover:scale-110 transition-all duration-300 ${isVisible ? "float-in-custom" : ""}`}>
+        <div className="relative">
+          <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-[var(--color-primary)] animate-ping opacity-75" />
+          <BookOpen className="w-16 h-16 text-[var(--color-primary)]" />
+        </div>
       </div>
 
-      {/* WIDER Main Container */}
-      <div className="relative z-10  text-center max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full space-y-8 px-4 sm:px-6 lg:px-8 pt-10">
-        {/* Wider Main Icon */}
-        <div
-          className={`w-28 h-28 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-secondary)]/10 border-4 border-[var(--color-primary)]/20 backdrop-blur-xl rounded-3xl flex items-center justify-center mx-auto shadow-2xl group ${isVisible ? "animate-float-in" : ""}`}
-        >
-          <div className="relative">
-            <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-[var(--color-primary)] animate-ping opacity-75" />
-            <BookOpen className="w-16 h-16 text-[var(--color-primary)] group-hover:scale-110 transition-transform duration-300" />
-          </div>
-        </div>
-
-        {/* Wider Title Area */}
-        <div className="space-y-4">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-[var(--color-text)] via-[var(--color-primary)] to-[var(--color-secondary)] bg-clip-text text-transparent leading-tight relative overflow-hidden px-4">
-            Welcome to
-            <span className="inline-block">
-              <span className="shine bg-gradient-to-r from-transparent via-white/20 to-transparent absolute inset-0 -skew-x-12 animate-shine" />
-            </span>
-          </h1>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[var(--color-text)] via-[var(--color-primary)]/80 to-[var(--color-secondary)]/80 bg-clip-text text-transparent drop-shadow-lg px-4">
-            MCQ Platform ✨
-          </h2>
-        </div>
-
-        {/* Wider Description */}
-        <p className="text-xl md:text-2xl text-[var(--color-text-muted)] max-w-3xl mx-auto leading-relaxed px-6">
-          Test your skills with comprehensive MCQs across
-          <span className="inline-flex items-center gap-1 bg-[var(--color-primary)]/10 px-3 py-1.5 rounded-2xl backdrop-blur-sm border border-[var(--color-primary)]/20 animate-pulse mx-1">
-            <span className="font-bold text-[var(--color-primary)]">
-              Technical
-            </span>
-            <Sparkles className="w-4 h-4 text-[var(--color-primary)] opacity-80" />
-          </span>
-          ,
-          <span className="font-bold text-[var(--color-primary)] mx-1">
-            Aptitude
-          </span>
-          ,
-          <span className="font-bold text-[var(--color-primary)] mx-1">
-            Logical
-          </span>
-          , and
-          <span className="font-bold text-[var(--color-primary)] mx-1">
-            English
-          </span>
-          .
-        </p>
-
-        {/* Wider Premium Button */}
-        <button
-          onClick={handleStartQuizzes}
-          className="group relative inline-flex items-center gap-4 px-12 py-6 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] text-white font-bold text-xl rounded-3xl shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all duration-500 overflow-hidden backdrop-blur-xl border border-white/20 mx-auto"
-        >
-          <span>Start Your First Quiz</span>
-          <ArrowRight className="h-7 w-7 group-hover:translate-x-2 transition-transform duration-300" />
-
-          <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-white/10 to-transparent rounded-3xl -skew-x-12 opacity-0 group-hover:opacity-100 transition-all duration-500 blur" />
-          <div className="absolute inset-0 ring-2 ring-[var(--color-primary)]/50 -translate-y-1 scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500" />
-        </button>
+      {/* Title Area */}
+      <div className="space-y-4">
+        <h1 className="shine-container text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-[var(--color-text)] via-[var(--color-primary)] to-[var(--color-secondary)] bg-clip-text text-transparent leading-tight relative overflow-hidden px-4">
+          Welcome to
+          <span className="shine inline-block relative" />
+        </h1>
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-[var(--color-text)] via-[var(--color-primary)]/80 to-[var(--color-secondary)]/80 bg-clip-text text-transparent drop-shadow-lg px-4">
+          MCQ Platform ✨
+        </h2>
       </div>
 
-      <style jsx>{`
-        @keyframes float-in {
-          0% {
-            opacity: 0;
-            transform: scale(0.8) translateY(20px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(20px, -20px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        @keyframes shine {
-          0% {
-            transform: translateX(-100%) skewX(-25deg);
-          }
-          100% {
-            transform: translateX(300%) skewX(-25deg);
-          }
-        }
-        .animate-float-in {
-          animation: float-in 0.8s ease-out forwards;
-        }
-        .animate-blob {
-          animation: blob 10s infinite;
-        }
-        .animation-delay-2s {
-          animation-delay: 2s;
-        }
-        .animation-delay-4s {
-          animation-delay: 4s;
-        }
-        .animation-delay-6s {
-          animation-delay: 6s;
-        }
-        .shine {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-      `}</style>
+      {/* Description */}
+      <p className="text-xl md:text-2xl text-[var(--color-text-muted)] max-w-3xl mx-auto leading-relaxed px-6">
+        Test your skills with comprehensive MCQs across
+        <span className="inline-flex items-center gap-1 bg-[var(--color-primary)]/20 px-3 py-1.5 rounded-2xl backdrop-blur-sm border border-[var(--color-primary)]/30 animate-pulse mx-1">
+          <span className="font-bold text-[var(--color-primary)]">Technical</span>
+          <Sparkles className="w-4 h-4 text-[var(--color-primary)] opacity-80" />
+        </span>,
+        <span className="font-bold text-[var(--color-primary)] mx-1">Aptitude</span>,
+        <span className="font-bold text-[var(--color-primary)] mx-1">Logical</span>, and
+        <span className="font-bold text-[var(--color-primary)] mx-1">English</span>.
+      </p>
+
+      {/* Premium Button */}
+      <button
+        onClick={handleStartQuizzes}
+        className="group relative inline-flex items-center gap-4 px-12 py-6 bg-linear-to-r  from-primary/80 to--bg/20 text-text font-bold text-xl rounded-3xl shadow-2xl hover:shadow-3xl hover:-translate-y-2 transition-all duration-500 overflow-hidden backdrop-blur-xlmx-auto"
+      >
+        <span>Start Your First Quiz</span>
+        <ArrowRight className="h-7 w-7 group-hover:translate-x-2 transition-transform duration-300" />
+        <div className="absolute inset-0 bg-linear-to-r from-[var(--color-muted)]/20 via-[var(--color-muted)]/10 to-transparent rounded-3xl -skew-x-12 opacity-0 group-hover:opacity-100 transition-all duration-500 blur" />
+        <div className="absolute inset-0 ring-2 ring-[var(--color-primary)]/60 -translate-y-1 scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500" />
+      </button>
     </div>
-  );
+  </div>
+);
+
+
+
 };
 
 export default Home;

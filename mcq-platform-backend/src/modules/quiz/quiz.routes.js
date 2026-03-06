@@ -16,10 +16,10 @@ router.post("/submit",authMiddleware, submitQuiz);
 
 router.get("/quizzes",authMiddleware, adminOnly, getAllQuizzesWithSubmissions);
 
-router.get("/report/:quizId",authMiddleware, adminOnly, allStudentsQuizReport);
+// router.get("/report/:quizId",authMiddleware, adminOnly, allStudentsQuizReport);
 router.get("/report/full/:quizId",authMiddleware, adminOnly, getQuizFullSubmissionReport);
 
-router.get("/report/:quizId/:studentId",authMiddleware, adminOnly, studentQuizReport); 
+// router.get("/report/:quizId/:studentId",authMiddleware, adminOnly, studentQuizReport); 
 
 // DELETE submission report by attemptId
 router.delete("/report/:quizId/:userId",authMiddleware, superAdminOnly, deleteQuizSubmissionReport);

@@ -33,7 +33,14 @@ CREATE TABLE admin (
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+CREATE TABLE admin_requests (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE email_otp (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   email VARCHAR(255) NOT NULL,
@@ -159,3 +166,135 @@ INSERT INTO question_category (name)
 VALUES ('English'), ('Aptitude'), ('Logical'), ('Technical');
 INSERT INTO departments (code, name)
 VALUES ('CSE','Computer Science'), ('MECH','Mechanical');
+
+
+
+-- Feature Extensions
+
+
+CREATE TABLE coding_questions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  constraints TEXT,
+  difficulty ENUM('easy','medium','hard') DEFAULT 'easy',
+
+  created_by INT,
+  is_active BOOLEAN DEFAULT TRUE,
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+    ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE coding_test_cases (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  question_id INT NOT NULL,
+
+  input TEXT NOT NULL,
+  expected_output TEXT NOT NULL,
+
+  is_hidden BOOLEAN DEFAULT TRUE,
+
+  FOREIGN KEY (question_id)
+    REFERENCES coding_questions(id)
+    ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE coding_tests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+
+  duration_minutes INT NOT NULL,
+
+  is_active BOOLEAN DEFAULT TRUE,
+
+  created_by INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE coding_test_questions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  test_id INT NOT NULL,
+  question_id INT NOT NULL,
+
+  question_order INT DEFAULT 1,
+  marks INT DEFAULT 100,
+
+  FOREIGN KEY (test_id)
+    REFERENCES coding_tests(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (question_id)
+    REFERENCES coding_questions(id)
+    ON DELETE CASCADE,
+
+  UNIQUE (test_id, question_id)
+);
+
+
+
+CREATE TABLE coding_test_attempts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  test_id INT NOT NULL,
+  user_id INT NOT NULL,
+
+  start_time DATETIME NOT NULL,
+  end_time DATETIME NULL,
+
+  status ENUM('IN_PROGRESS','SUBMITTED') 
+    DEFAULT 'IN_PROGRESS',
+
+  FOREIGN KEY (test_id)
+    REFERENCES coding_tests(id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE coding_test_results (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+
+  user_id INT NOT NULL,
+  test_id INT NOT NULL,
+  question_id INT NOT NULL,
+
+  attempt_id INT NOT NULL,
+
+  status ENUM(
+    'Accepted',
+    'Wrong Answer',
+    'Compilation Error',
+    'Runtime Error',
+    'Time Limit Exceeded'
+  ) NOT NULL,
+
+  marks_obtained INT DEFAULT 0,
+
+  submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (attempt_id)
+    REFERENCES coding_test_attempts(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (test_id)
+    REFERENCES coding_tests(id)
+    ON DELETE CASCADE,
+
+  FOREIGN KEY (question_id)
+    REFERENCES coding_questions(id)
+    ON DELETE CASCADE,
+
+  UNIQUE (attempt_id, question_id)
+);
+
