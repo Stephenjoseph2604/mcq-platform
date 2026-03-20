@@ -24,7 +24,7 @@ export const AdminQuizPage = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState();
-
+  const [saving,setSaving]=useState(false);
   const [editQuiz, setEditQuiz] = useState(null);
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -47,7 +47,6 @@ export const AdminQuizPage = () => {
         setLoadingCategories(true);
         const response = await categoriesAPI.getAll();
         if (response.data.success) {
-          console.log(response.data.data);
           setCategories(response.data.data); // ✅ [{id: 1, name: "English"}, ...]
         }
       } catch (err) {
@@ -96,6 +95,7 @@ export const AdminQuizPage = () => {
 
   // Handle Create Quiz Form
   const handleCreateQuiz = async () => {
+    setSaving(true)
     if (
       !formData.title ||
       !formData.quiz_code ||
@@ -144,6 +144,9 @@ export const AdminQuizPage = () => {
         `❌ Error: ${error.response?.data?.message || "Failed to create quiz"}`,
       );
     }
+    finally{
+      setSaving(false)
+    }
   };
 
   // Handle Edit Quiz
@@ -177,7 +180,9 @@ export const AdminQuizPage = () => {
     });
   };
 
+
   const handleSaveEditQuiz = async () => {
+    setSaving(true)
     if (!editQuiz?.id || !formData.title || formData.config.length === 0) {
       alert("Please fill all required fields");
       return;
@@ -218,6 +223,9 @@ export const AdminQuizPage = () => {
       }
     } catch (error) {
       alert(`❌ Error: ${error.response?.data?.message || "Update failed"}`);
+    }
+    finally{
+      setSaving(false)
     }
   };
 
@@ -515,6 +523,7 @@ export const AdminQuizPage = () => {
                 />
               </svg>
               {editQuiz ? "Save" : "Create"}
+              {saving && <div className="h-5/10 aspect-square border-3 rounded-full border-gray-400 border-t-white animate-spin"/>} 
             </button>
           </div>
         </div>

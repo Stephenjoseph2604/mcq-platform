@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Clock,
@@ -6,20 +6,193 @@ import {
   Tag,
   Play,
   AlertCircle,
-  CheckCircle,
-  Loader2,
+  X,
+  KeyRound,
+  ShieldCheck,
+  ShieldX,
 } from "lucide-react";
 import { quizAPI } from "../../services/api";
 import { encryptId } from "../../utils/encryption";
 import Loader from "../../components/Loader";
 import DotGrid from "../../components/DotGrid";
 import FloatingParticles from "../../components/FloatingParticles";
+import QuizCodeModal from "./QuizCodeModal";
+// ─── Quiz Code Modal ────────────────────────────────────────────────────────
+
+// const QuizCodeModal = ({ quiz, onClose, onSuccess }) => {
+//   const [code, setCode] = useState("");
+//   const [error, setError] = useState("");
+//   const [shake, setShake] = useState(false);
+//   const inputRef = useRef(null);
+
+//   useEffect(() => {
+//     // Auto-focus input when modal opens
+//     setTimeout(() => inputRef.current?.focus(), 100);
+//   }, []);
+
+//   const triggerShake = () => {
+//     setShake(true);
+//     setTimeout(() => setShake(false), 500);
+//   };
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     if (!code.trim()) {
+//       setError("Please enter the quiz code.");
+//       triggerShake();
+//       return;
+//     }
+//     if (code.trim().toUpperCase() === quiz.quiz_code.toUpperCase()) {
+//       setError("");
+//       onSuccess(quiz.id);
+//     } else {
+//       setError("Incorrect quiz code. Please try again.");
+//       triggerShake();
+//       setCode("");
+//       inputRef.current?.focus();
+//     }
+//   };
+
+//   // Close on Escape key
+//   useEffect(() => {
+//     const handler = (e) => e.key === "Escape" && onClose();
+//     window.addEventListener("keydown", handler);
+//     return () => window.removeEventListener("keydown", handler);
+//   }, [onClose]);
+
+//   return (
+//     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+//       {/* Backdrop */}
+//       <div
+//         className="absolute inset-0 bg-black/60 backdrop-blur-md"
+//         onClick={onClose}
+//       />
+
+//       {/* Modal */}
+//       <div
+//         className={`relative z-10 w-full max-w-md bg-[var(--color-card)]/80 backdrop-blur-2xl border border-[var(--color-muted)]/40 rounded-3xl p-8 shadow-2xl transition-all duration-200 ${
+//           shake ? "animate-[shake_0.4s_ease-in-out]" : ""
+//         }`}
+//         style={{
+//           boxShadow:
+//             "0 0 60px var(--color-primary, #6366f1)22, 0 25px 50px rgba(0,0,0,0.5)",
+//         }}
+//       >
+//         {/* Decorative blob */}
+//         <div className="absolute -top-8 -right-8 w-24 h-24 bg-[var(--color-primary)]/20 rounded-full blur-2xl pointer-events-none" />
+//         <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-[var(--color-secondary)]/20 rounded-full blur-2xl pointer-events-none" />
+
+//         {/* Close button */}
+//         <button
+//           onClick={onClose}
+//           className="absolute top-4 right-4 p-2 rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-muted)]/20 hover:text-[var(--color-text)] transition-all duration-200"
+//         >
+//           <X size={18} />
+//         </button>
+
+//         {/* Icon */}
+//         <div className="flex justify-center mb-5">
+//           <div className="w-16 h-16 rounded-2xl bg-[var(--color-primary)]/15 border border-[var(--color-primary)]/30 flex items-center justify-center">
+//             <KeyRound className="w-8 h-8 text-[var(--color-primary)]" />
+//           </div>
+//         </div>
+
+//         {/* Heading */}
+//         <div className="text-center mb-6">
+//           <h2 className="text-2xl font-bold text-[var(--color-text)] mb-1">
+//             Enter Quiz Code
+//           </h2>
+//           <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+//             Enter the access code to unlock{" "}
+//             <span className="text-[var(--color-primary)] font-medium">
+//               {quiz.title}
+//             </span>
+//           </p>
+//         </div>
+
+//         {/* Form */}
+//         <form onSubmit={handleSubmit} className="space-y-4">
+//           <div className="relative">
+//             <input
+//               ref={inputRef}
+//               type="text"
+//               value={code}
+//               onChange={(e) => {
+//                 setCode(e.target.value.toUpperCase());
+//                 setError("");
+//               }}
+//               placeholder="e.g. QUIZXYZ"
+//               maxLength={20}
+//               className={`w-full h-14 px-5 pr-12 rounded-xl bg-[var(--color-bg)]/60 border text-[var(--color-text)] placeholder-[var(--color-text-muted)]/50 text-center tracking-[0.25em] text-lg font-semibold focus:outline-none transition-all duration-200 ${
+//                 error
+//                   ? "border-red-500/60 focus:border-red-500"
+//                   : "border-[var(--color-muted)]/40 focus:border-[var(--color-primary)]/70"
+//               }`}
+//               autoComplete="off"
+//               spellCheck="false"
+//             />
+//             {/* Status icon inside input */}
+//             <div className="absolute right-4 top-1/2 -translate-y-1/2">
+//               {error ? (
+//                 <ShieldX className="w-5 h-5 text-red-500/70" />
+//               ) : code.length > 0 ? (
+//                 <ShieldCheck className="w-5 h-5 text-[var(--color-primary)]/60" />
+//               ) : null}
+//             </div>
+//           </div>
+
+//           {/* Error */}
+//           {error && (
+//             <p className="flex items-center gap-2 text-sm text-red-400 px-1">
+//               <AlertCircle className="w-4 h-4 shrink-0" />
+//               {error}
+//             </p>
+//           )}
+
+//           {/* Buttons */}
+//           <div className="flex gap-3 pt-1">
+//             <button
+//               type="button"
+//               onClick={onClose}
+//               className="flex-1 h-12 rounded-xl border border-[var(--color-muted)]/40 text-[var(--color-text-muted)] hover:bg-[var(--color-muted)]/10 hover:text-[var(--color-text)] font-medium transition-all duration-200"
+//             >
+//               Cancel
+//             </button>
+//             <button
+//               type="submit"
+//               className="flex-1 h-12 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:opacity-90 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+//             >
+//               <Play className="w-4 h-4" />
+//               Start Quiz
+//             </button>
+//           </div>
+//         </form>
+//       </div>
+
+//       {/* Shake keyframe */}
+//       <style>{`
+//         @keyframes shake {
+//           0%, 100% { transform: translateX(0); }
+//           15% { transform: translateX(-8px); }
+//           30% { transform: translateX(8px); }
+//           45% { transform: translateX(-6px); }
+//           60% { transform: translateX(6px); }
+//           75% { transform: translateX(-3px); }
+//           90% { transform: translateX(3px); }
+//         }
+//       `}</style>
+//     </div>
+//   );
+// };
+
+// ─── Main Quiz Page ──────────────────────────────────────────────────────────
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedQuiz, setSelectedQuiz] = useState(null); // quiz object for modal
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -27,7 +200,6 @@ const QuizPage = () => {
         setLoading(true);
         setError("");
         const response = await quizAPI.getQuizzes();
-
         if (response.data.success) {
           setQuizzes(response.data.data);
         } else {
@@ -39,29 +211,27 @@ const QuizPage = () => {
         setLoading(false);
       }
     };
-
     fetchQuizzes();
   }, [navigate]);
 
-  const handleStartQuiz = (quizId) => {
-    console.log(`Start Quiz ID: ${quizId}`);
+  // Opens the code modal instead of navigating directly
+  const handleStartQuiz = (quiz) => {
+    setSelectedQuiz(quiz);
+  };
+
+  // Called when the correct code is entered
+  const handleCodeSuccess = (quizId) => {
+    setSelectedQuiz(null);
     const encryptedQuizId = encryptId(quizId);
     navigate(`/quiz/${encryptedQuizId}`);
   };
 
- if (loading) {
-  return (
-      <Loader message="Fetching Quiz..." />
-  );
-}
-
+  if (loading) return <Loader message="Fetching Quiz..." />;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Fixed Dot Grid Background */}
-    
-    <DotGrid/>
-    <FloatingParticles/>
+      <DotGrid />
+      <FloatingParticles />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
@@ -74,7 +244,7 @@ const QuizPage = () => {
           </p>
         </div>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
           <div className="max-w-2xl mx-auto mb-12">
             <div className="bg-[var(--color-card)]/80 border border-[var(--color-primary)]/30 backdrop-blur-sm rounded-2xl p-6 flex items-center gap-4">
@@ -112,14 +282,13 @@ const QuizPage = () => {
               {/* Decorative Blob */}
               <div className="h-15 w-15 blur-lg rounded-full bg-[var(--color-primary)]/30 absolute -top-5 -right-5" />
 
-              {/* Quiz Card Content */}
               <div className="space-y-6">
                 {/* Title */}
                 <h3 className="text-2xl font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors duration-300 leading-tight">
                   {quiz.title}
                 </h3>
 
-                {/* Stats Row */}
+                {/* Stats */}
                 <div className="flex items-center gap-6 text-sm text-[var(--color-text-muted)] mb-4">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -131,7 +300,7 @@ const QuizPage = () => {
                   </div>
                 </div>
 
-                {/* Categories Tags */}
+                {/* Category Tags */}
                 <div className="flex flex-wrap gap-2">
                   {quiz.categories.slice(0, 4).map((category, index) => (
                     <span
@@ -144,10 +313,10 @@ const QuizPage = () => {
                   ))}
                 </div>
 
-                {/* Clean Start Quiz Button */}
+                {/* Start Button — now passes full quiz object */}
                 <button
-                  onClick={() => handleStartQuiz(quiz.id)}
-                  className="w-full h-14 bg-gradient-to-r  from-[var(--color-primary)]/80 to-[var(--color-bg)]/20 text-text rounded-4xl font-semibold text-lg shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 active:scale-90 transition-all duration-200"
+                  onClick={() => handleStartQuiz(quiz)}
+                  className="w-full h-14 bg-gradient-to-r from-[var(--color-primary)]/80 to-[var(--color-bg)]/20 text-text rounded-4xl font-semibold text-lg shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 active:scale-90 transition-all duration-200"
                 >
                   <span className="flex items-center gap-3">
                     Start Quiz
@@ -156,12 +325,21 @@ const QuizPage = () => {
                 </button>
               </div>
 
-              {/* Subtle card glow */}
+              {/* Card glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-secondary)]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl blur pointer-events-none" />
             </div>
           ))}
         </div>
       </div>
+
+      {/* Quiz Code Modal */}
+      {selectedQuiz && (
+        <QuizCodeModal
+          quiz={selectedQuiz}
+          onClose={() => setSelectedQuiz(null)}
+          onSuccess={handleCodeSuccess}
+        />
+      )}
     </div>
   );
 };

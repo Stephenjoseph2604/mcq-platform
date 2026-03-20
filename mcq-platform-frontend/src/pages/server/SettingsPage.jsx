@@ -483,153 +483,156 @@ export const SettingsPage = () => {
         </div>
       </div>
 
-      {/* Admin Section - Full width always */}
-      <div className="space-y-4 sm:space-y-5">
-        {/* Admin buttons */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 items-center mb-3 ">
-          <button
-            className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white hover:from-[var(--color-primary)]/90 hover:to-[var(--color-secondary)]/90 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 border border-[var(--color-primary)]/20 flex-shrink-0"
-            title="Add Admin"
-          >
-            <Plus size={16} />
-          </button>
-          <button
-            onClick={() => setShowRequests((prev) => !prev)}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 h-10 sm:h-11 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl hover:bg-[var(--color-secondary)]/20 hover:shadow-md shadow-sm backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm font-medium flex-1 sm:flex-none"
-          >
-            <Eye size={14} />
-            {showRequests ? "Hide Requests" : "See Requests"}
-          </button>
-        </div>
 
-        {/* Admin Requests Table (if visible) */}
-        {showRequests && (
-          <div className="bg-[var(--color-card)]/50 border border-[var(--color-muted)]/20 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm max-h-[280px] overflow-auto">
-            <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[var(--color-text)] to-[var(--color-secondary)] bg-clip-text text-transparent mb-3 sm:mb-4">
-              Admin Requests
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-muted)]/20">
-                    <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-24 sm:w-auto">
-                      Name
-                    </th>
-                    <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide">
-                      Email
-                    </th>
-                    <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide hidden md:inline-block">
-                      Requested At
-                    </th>
-                    <th className="py-2.5 sm:py-3 text-center font-semibold text-[var(--color-text)] tracking-wide w-24">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {requests.map((req) => (
-                    <tr
-                      key={req.id}
-                      className="border-b border-[var(--color-muted)]/10 hover:bg-[var(--color-card)]/30 transition-all duration-200"
-                    >
-                      <td className="py-2.5 sm:py-3 font-medium text-[var(--color-text)] truncate max-w-[120px]">
-                        {req.name}
-                      </td>
-                      <td className="py-2.5 sm:py-3 text-[var(--color-text)] truncate">
-                        {req.email}
-                      </td>
-                      <td className="py-2.5 sm:py-3 hidden md:inline-block text-[var(--color-text-muted)]">
-                        {req.created_at}
-                      </td>
-                      <td className="py-2.5 sm:py-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => handleAcceptRequest(req.id)}
-                            className="p-1.5 sm:p-2 bg-[var(--color-success)]/20 text-[var(--color-success)] hover:bg-[var(--color-success)]/40 hover:scale-105 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex-shrink-0"
-                            title="Accept"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleRejectRequest(req.id)}
-                            className="p-1.5 sm:p-2 bg-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/40 hover:scale-105 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex-shrink-0"
-                            title="Reject"
-                          >
-                            <XCircle size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Admin Table */}
-        <div className="bg-[var(--color-card)]/50 border border-[var(--color-muted)]/20 rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-sm max-h-[280px] sm:max-h-none overflow-auto">
-          <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[var(--color-text)] to-[var(--color-secondary)] bg-clip-text text-transparent mb-2.5 sm:mb-3">
-            Admins
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs sm:text-sm">
-              <thead>
-                <tr className="border-b border-[var(--color-muted)]/20">
-                  <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-20 sm:w-auto">
-                    Name
-                  </th>
-                  <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide">
-                    Email
-                  </th>
-                  <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-20 sm:w-auto">
-                    Role
-                  </th>
-                  <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide hidden md:inline-block">
-                    Created At
-                  </th>
-                  <th className="py-2 sm:py-3 text-center font-semibold text-[var(--color-text)] tracking-wide w-24">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {admins.map((admin) => (
-                  <tr
-                    key={admin.id}
-                    className="border-b border-[var(--color-muted)]/10 hover:bg-[var(--color-card)]/30 transition-all duration-200"
-                  >
-                    <td className="py-2 sm:py-3 font-medium text-[var(--color-text)] truncate max-w-[100px]">
-                      {admin.name}
-                    </td>
-                    <td className="py-2 sm:py-3 text-[var(--color-text)] truncate">
-                      {admin.email}
-                    </td>
-                    <td className="py-2 sm:py-3 font-medium text-[var(--color-secondary)] truncate w-20">
-                      {admin.role}
-                    </td>
-                    <td className="py-2 sm:py-3 hidden md:inline-block text-[var(--color-text-muted)]">
-                      {admin.created_at}
-                    </td>
-                    <td className="py-2 sm:py-3 text-center">
-                      <button
-                        onClick={() => handleToggleAdminStatus(admin.id)}
-                        className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 whitespace-nowrap ${
-                          admin.active
-                            ? "bg-[var(--color-success)]/20 text-[var(--color-success)] hover:bg-[var(--color-success)]/40 hover:shadow-md border border-[var(--color-success)]/30"
-                            : "bg-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/40 hover:shadow-md border border-[var(--color-danger)]/30"
-                        }`}
-                      >
-                        {admin.active ? "Active" : "Inactive"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
+
+
+      // {/* Admin Section - Full width always */}
+      // <div className="space-y-4 sm:space-y-5">
+      //   {/* Admin buttons */}
+      //   <div className="flex flex-wrap gap-2 sm:gap-3 items-center mb-3 ">
+      //     <button
+      //       className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white hover:from-[var(--color-primary)]/90 hover:to-[var(--color-secondary)]/90 shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 border border-[var(--color-primary)]/20 flex-shrink-0"
+      //       title="Add Admin"
+      //     >
+      //       <Plus size={16} />
+      //     </button>
+      //     <button
+      //       onClick={() => setShowRequests((prev) => !prev)}
+      //       className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 h-10 sm:h-11 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border border-[var(--color-secondary)]/20 rounded-xl hover:bg-[var(--color-secondary)]/20 hover:shadow-md shadow-sm backdrop-blur-sm transition-all duration-200 text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+      //     >
+      //       <Eye size={14} />
+      //       {showRequests ? "Hide Requests" : "See Requests"}
+      //     </button>
+      //   </div>
+
+      //   {/* Admin Requests Table (if visible) */}
+      //   {showRequests && (
+      //     <div className="bg-[var(--color-card)]/50 border border-[var(--color-muted)]/20 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-sm max-h-[280px] overflow-auto">
+      //       <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[var(--color-text)] to-[var(--color-secondary)] bg-clip-text text-transparent mb-3 sm:mb-4">
+      //         Admin Requests
+      //       </h3>
+      //       <div className="overflow-x-auto">
+      //         <table className="w-full text-xs sm:text-sm">
+      //           <thead>
+      //             <tr className="border-b border-[var(--color-muted)]/20">
+      //               <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-24 sm:w-auto">
+      //                 Name
+      //               </th>
+      //               <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide">
+      //                 Email
+      //               </th>
+      //               <th className="py-2.5 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide hidden md:inline-block">
+      //                 Requested At
+      //               </th>
+      //               <th className="py-2.5 sm:py-3 text-center font-semibold text-[var(--color-text)] tracking-wide w-24">
+      //                 Actions
+      //               </th>
+      //             </tr>
+      //           </thead>
+      //           <tbody>
+      //             {requests.map((req) => (
+      //               <tr
+      //                 key={req.id}
+      //                 className="border-b border-[var(--color-muted)]/10 hover:bg-[var(--color-card)]/30 transition-all duration-200"
+      //               >
+      //                 <td className="py-2.5 sm:py-3 font-medium text-[var(--color-text)] truncate max-w-[120px]">
+      //                   {req.name}
+      //                 </td>
+      //                 <td className="py-2.5 sm:py-3 text-[var(--color-text)] truncate">
+      //                   {req.email}
+      //                 </td>
+      //                 <td className="py-2.5 sm:py-3 hidden md:inline-block text-[var(--color-text-muted)]">
+      //                   {req.created_at}
+      //                 </td>
+      //                 <td className="py-2.5 sm:py-3 text-center">
+      //                   <div className="flex items-center justify-center gap-1.5">
+      //                     <button
+      //                       onClick={() => handleAcceptRequest(req.id)}
+      //                       className="p-1.5 sm:p-2 bg-[var(--color-success)]/20 text-[var(--color-success)] hover:bg-[var(--color-success)]/40 hover:scale-105 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex-shrink-0"
+      //                       title="Accept"
+      //                     >
+      //                       <CheckCircle size={16} />
+      //                     </button>
+      //                     <button
+      //                       onClick={() => handleRejectRequest(req.id)}
+      //                       className="p-1.5 sm:p-2 bg-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/40 hover:scale-105 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex-shrink-0"
+      //                       title="Reject"
+      //                     >
+      //                       <XCircle size={16} />
+      //                     </button>
+      //                   </div>
+      //                 </td>
+      //               </tr>
+      //             ))}
+      //           </tbody>
+      //         </table>
+      //       </div>
+      //     </div>
+      //   )}
+
+      //   {/* Admin Table */}
+      //   <div className="bg-[var(--color-card)]/50 border border-[var(--color-muted)]/20 rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-sm max-h-[280px] sm:max-h-none overflow-auto">
+      //     <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[var(--color-text)] to-[var(--color-secondary)] bg-clip-text text-transparent mb-2.5 sm:mb-3">
+      //       Admins
+      //     </h3>
+      //     <div className="overflow-x-auto">
+      //       <table className="w-full text-xs sm:text-sm">
+      //         <thead>
+      //           <tr className="border-b border-[var(--color-muted)]/20">
+      //             <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-20 sm:w-auto">
+      //               Name
+      //             </th>
+      //             <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide">
+      //               Email
+      //             </th>
+      //             <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide w-20 sm:w-auto">
+      //               Role
+      //             </th>
+      //             <th className="py-2 sm:py-3 text-left font-semibold text-[var(--color-text)] tracking-wide hidden md:inline-block">
+      //               Created At
+      //             </th>
+      //             <th className="py-2 sm:py-3 text-center font-semibold text-[var(--color-text)] tracking-wide w-24">
+      //               Status
+      //             </th>
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {admins.map((admin) => (
+      //             <tr
+      //               key={admin.id}
+      //               className="border-b border-[var(--color-muted)]/10 hover:bg-[var(--color-card)]/30 transition-all duration-200"
+      //             >
+      //               <td className="py-2 sm:py-3 font-medium text-[var(--color-text)] truncate max-w-[100px]">
+      //                 {admin.name}
+      //               </td>
+      //               <td className="py-2 sm:py-3 text-[var(--color-text)] truncate">
+      //                 {admin.email}
+      //               </td>
+      //               <td className="py-2 sm:py-3 font-medium text-[var(--color-secondary)] truncate w-20">
+      //                 {admin.role}
+      //               </td>
+      //               <td className="py-2 sm:py-3 hidden md:inline-block text-[var(--color-text-muted)]">
+      //                 {admin.created_at}
+      //               </td>
+      //               <td className="py-2 sm:py-3 text-center">
+      //                 <button
+      //                   onClick={() => handleToggleAdminStatus(admin.id)}
+      //                   className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all duration-200 whitespace-nowrap ${
+      //                     admin.active
+      //                       ? "bg-[var(--color-success)]/20 text-[var(--color-success)] hover:bg-[var(--color-success)]/40 hover:shadow-md border border-[var(--color-success)]/30"
+      //                       : "bg-[var(--color-danger)]/20 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/40 hover:shadow-md border border-[var(--color-danger)]/30"
+      //                   }`}
+      //                 >
+      //                   {admin.active ? "Active" : "Inactive"}
+      //                 </button>
+      //               </td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </div>
+      //   </div>
+      // </div>

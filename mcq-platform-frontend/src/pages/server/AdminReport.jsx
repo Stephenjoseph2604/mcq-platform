@@ -244,11 +244,13 @@ export const AdminReport = () => {
   };
 
   const fetchQuizReport = useCallback(async (quizId) => {
-    console.log("Fetching report for quiz:", quizId);
+    // console.log("Fetching report for quiz:", quizId);
     try {
       setReportLoading(true);
       const response = await reportAPI.getQuizReport(quizId);
       if (response.data?.success) {
+        console.log(response.data.data);
+        
         setQuizReport(response.data.data);
       }
     } catch (error) {

@@ -624,13 +624,121 @@ export const getAllQuizzes = async () => {
 };
 
 
+// export const getQuizFullSubmissionReport = async (quizId) => {
+//   const conn = await db.getConnection();
+
+//   try {
+//     /* 1️⃣ Quiz info */
+//     const [[quiz]] = await conn.query(
+//       `SELECT id, title FROM quiz WHERE id = ?`,
+//       [quizId]
+//     );
+
+//     if (!quiz) throw new Error("Quiz not found");
+
+//     /* 2️⃣ All submitted attempts + student info */
+//     const [attempts] = await conn.query(
+//       `SELECT 
+//           qa.id AS attempt_id,
+//           qa.start_time,
+//           qa.end_time,
+//           qa.submitted,
+//           qa.total_score,
+//           qa.percentage,
+
+//           u.id AS student_id,
+//           u.name AS student_name,
+//           d.name AS department
+//        FROM quiz_attempt qa
+//        JOIN users u ON qa.user_id = u.id
+//        LEFT JOIN departments d ON u.department_id = d.id
+//        WHERE qa.quiz_id = ?
+//          AND qa.submitted = TRUE
+//        ORDER BY qa.end_time DESC`,
+//       [quizId]
+//     );
+
+//     if (attempts.length === 0) {
+//       return {
+//         quiz,
+//         totalSubmissions: 0,
+//         submissions: []
+//       };
+//     }
+
+//     /* 3️⃣ Categories in this quiz */
+//     const [categories] = await conn.query(
+//       `SELECT DISTINCT c.id, c.name
+//        FROM quiz_question_config qc
+//        JOIN question_category c ON qc.category_id = c.id
+//        WHERE qc.quiz_id = ?`,
+//       [quizId]
+//     );
+
+//     /* 4️⃣ All category results for all attempts (single query) */
+//     const attemptIds = attempts.map(a => a.attempt_id);
+
+//     const [sectionResults] = await conn.query(
+//       `SELECT attempt_id, category_id, total_questions, correct_answers, percentage
+//        FROM quiz_section_result
+//        WHERE attempt_id IN (?)`,
+//       [attemptIds]
+//     );
+
+//     /* 5️⃣ Build final response */
+//     const submissions = attempts.map((a) => {
+//       const categoryReport = categories.map((cat) => {
+//         const result = sectionResults.find(
+//           r => r.attempt_id === a.attempt_id && r.category_id === cat.id
+//         );
+
+//         return {
+//           categoryId: cat.id,
+//           categoryName: cat.name,
+//           totalQuestions: result?.total_questions || 0,
+//           correctAnswers: result?.correct_answers || 0,
+//           percentage: result?.percentage || 0
+//         };
+//       });
+
+//       return {
+//         student: {
+//           id: a.student_id,
+//           name: a.student_name,
+//           department: a.department
+//         },
+//         attempt: {
+//           attemptId: a.attempt_id,
+//           startTime: a.start_time,
+//           endTime: a.end_time,
+//           submitted: a.submitted,
+//           totalScore: a.total_score,
+//           percentage: a.percentage
+//         },
+//         categories: categoryReport
+//       };
+//     });
+
+//     return {
+//       quiz: {
+//         id: quiz.id,
+//         title: quiz.title
+//       },
+//       totalSubmissions: submissions.length,
+//       submissions
+//     };
+//   } finally {
+//     conn.release();
+//   }
+// };
+
 export const getQuizFullSubmissionReport = async (quizId) => {
   const conn = await db.getConnection();
 
   try {
-    /* 1️⃣ Quiz info */
+    /* 1️⃣ Quiz info — total_questions is the source of truth */
     const [[quiz]] = await conn.query(
-      `SELECT id, title FROM quiz WHERE id = ?`,
+      `SELECT id, title, total_questions FROM quiz WHERE id = ?`,
       [quizId]
     );
 
@@ -644,8 +752,6 @@ export const getQuizFullSubmissionReport = async (quizId) => {
           qa.end_time,
           qa.submitted,
           qa.total_score,
-          qa.percentage,
-
           u.id AS student_id,
           u.name AS student_name,
           d.name AS department
@@ -659,27 +765,29 @@ export const getQuizFullSubmissionReport = async (quizId) => {
     );
 
     if (attempts.length === 0) {
-      return {
-        quiz,
-        totalSubmissions: 0,
-        submissions: []
-      };
+      return { quiz, totalSubmissions: 0, submissions: [] };
     }
 
-    /* 3️⃣ Categories in this quiz */
+    /* 3️⃣ Categories in this quiz + their configured question count */
+    // SUM(question_count) handles cases where same category has multiple
+    // department-specific rows (e.g. technical split by dept)
     const [categories] = await conn.query(
-      `SELECT DISTINCT c.id, c.name
+      `SELECT 
+          c.id, 
+          c.name, 
+          SUM(qc.question_count) AS configured_questions
        FROM quiz_question_config qc
        JOIN question_category c ON qc.category_id = c.id
-       WHERE qc.quiz_id = ?`,
+       WHERE qc.quiz_id = ?
+       GROUP BY c.id, c.name`,
       [quizId]
     );
 
-    /* 4️⃣ All category results for all attempts (single query) */
+    /* 4️⃣ All category results for all attempts */
     const attemptIds = attempts.map(a => a.attempt_id);
 
     const [sectionResults] = await conn.query(
-      `SELECT attempt_id, category_id, total_questions, correct_answers, percentage
+      `SELECT attempt_id, category_id, correct_answers
        FROM quiz_section_result
        WHERE attempt_id IN (?)`,
       [attemptIds]
@@ -692,14 +800,27 @@ export const getQuizFullSubmissionReport = async (quizId) => {
           r => r.attempt_id === a.attempt_id && r.category_id === cat.id
         );
 
+        const configuredQuestions = Number(cat.configured_questions) || 0;
+        const correctAnswers = result?.correct_answers || 0;
+
+        const categoryPercentage = configuredQuestions > 0
+          ? parseFloat(((correctAnswers / configuredQuestions) * 100).toFixed(2))
+          : 0;
+
         return {
           categoryId: cat.id,
           categoryName: cat.name,
-          totalQuestions: result?.total_questions || 0,
-          correctAnswers: result?.correct_answers || 0,
-          percentage: result?.percentage || 0
+          totalQuestions: configuredQuestions,
+          correctAnswers,
+          percentage: categoryPercentage
         };
       });
+
+      // Overall percentage always divided by quiz.total_questions
+      const totalCorrect = categoryReport.reduce((sum, c) => sum + c.correctAnswers, 0);
+      const overallPercentage = parseFloat(
+        ((totalCorrect / quiz.total_questions) * 100).toFixed(2)
+      );
 
       return {
         student: {
@@ -713,7 +834,7 @@ export const getQuizFullSubmissionReport = async (quizId) => {
           endTime: a.end_time,
           submitted: a.submitted,
           totalScore: a.total_score,
-          percentage: a.percentage
+          percentage: overallPercentage
         },
         categories: categoryReport
       };
@@ -722,7 +843,8 @@ export const getQuizFullSubmissionReport = async (quizId) => {
     return {
       quiz: {
         id: quiz.id,
-        title: quiz.title
+        title: quiz.title,
+        totalQuestions: quiz.total_questions
       },
       totalSubmissions: submissions.length,
       submissions

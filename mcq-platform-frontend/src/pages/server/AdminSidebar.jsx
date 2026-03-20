@@ -137,7 +137,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  FileQuestionMark,
+  FileQuestion,
   AlertTriangle,
   Bell,
   ChevronDown,
@@ -164,7 +164,7 @@ const navItems = [
   },
   {
     name: "Questions",
-    icon: FileQuestionMark,
+    icon: FileQuestion,
     href: "/admin/loadquestions",
     dropdown: [{ name: "Load Questions", href: "/admin/loadquestions" }],
   },
@@ -173,6 +173,21 @@ const navItems = [
   { name: "Employees", icon: Users, href: "/admin/employees" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
+
+// Shared nav item styles
+const getNavItemClass = (isActive) =>
+  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer w-full ${
+    isActive
+      ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-semibold shadow-lg"
+      : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:shadow-md"
+  }`;
+
+const getSubItemClass = (isActive) =>
+  `block px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+    isActive
+      ? "bg-[var(--color-primary)]/30 text-[var(--color-primary)] font-semibold"
+      : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/20 hover:text-[var(--color-primary)]"
+  }`;
 
 export const AdminSidebar = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -186,21 +201,89 @@ export const AdminSidebar = () => {
     setUser(userData);
   }, []);
 
-  const toggleDropdown = (name) => {
-    setOpenDropdowns((prev) => ({
-      ...prev,
-      [name]: !prev[name],
-    }));
-  };
+  // Auto-open dropdown if current path matches a dropdown item
+  useEffect(() => {
+    const autoOpen = {};
+    navItems.forEach(({ name, dropdown }) => {
+      if (dropdown?.some((item) => location.pathname.startsWith(item.href))) {
+        autoOpen[name] = true;
+      }
+    });
+    setOpenDropdowns(autoOpen);
+  }, [location.pathname]);
 
-  const closeAllDropdowns = () => {
-    setOpenDropdowns({});
+  const toggleDropdown = (name) => {
+    setOpenDropdowns((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
-    closeAllDropdowns();
   };
+
+  // Check if a nav item should be considered "active"
+  const isNavItemActive = (href, dropdown) => {
+    if (dropdown) {
+      return dropdown.some((item) => location.pathname.startsWith(item.href));
+    }
+    return location.pathname === href;
+  };
+
+  const NavItems = ({ onLinkClick }) => (
+    <>
+      {navItems.map(({ name, icon: Icon, href, dropdown }) => {
+        const active = isNavItemActive(href, dropdown);
+        return (
+          <div key={name}>
+            {dropdown ? (
+              // Items with dropdown: use a button to toggle, not NavLink
+              <button
+                onClick={() => toggleDropdown(name)}
+                className={getNavItemClass(active)}
+              >
+                <Icon size={20} />
+                <span className="text-base font-medium flex-1 text-left">
+                  {name}
+                </span>
+                <span
+                  className={`transition-transform duration-200 ${
+                    openDropdowns[name] ? "rotate-180" : ""
+                  }`}
+                >
+                  <ChevronDown size={18} />
+                </span>
+              </button>
+            ) : (
+              // Items without dropdown: use NavLink
+              <NavLink
+                to={href}
+                onClick={onLinkClick}
+                className={({ isActive }) => getNavItemClass(isActive)}
+              >
+                <Icon size={20} />
+                <span className="text-base font-medium flex-1">{name}</span>
+              </NavLink>
+            )}
+
+            {/* Dropdown items */}
+            {dropdown && openDropdowns[name] && (
+              <div className="pl-8 space-y-1 mt-1 border-l-2 border-[var(--color-primary)]/30">
+                {dropdown.map(({ name: subName, href: subHref }) => (
+                  <NavLink
+                    key={subName}
+                    to={subHref}
+                    onClick={onLinkClick}
+                    className={({ isActive }) => getSubItemClass(isActive)}
+                  >
+                    {subName}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
 
   return (
     <>
@@ -208,76 +291,29 @@ export const AdminSidebar = () => {
       <button
         onClick={() => setIsMobileMenuOpen(true)}
         className="fixed top-4 right-4 z-50 lg:hidden p-3 bg-[var(--color-card)]/20 text-text backdrop-blur-xl rounded-xl shadow-xl border border-[var(--color-muted)]/50 hover:shadow-2xl transition-all duration-200"
+        aria-label="Open navigation menu"
       >
         <Menu size={20} />
       </button>
 
       {/* Desktop Sidebar */}
-      <aside className="sticky inset-y-0 left-0 z-40 h-screen w-16 lg:w-[20vw] bg-card/50 flex flex-col hidden lg:flex">
-        {/* Logo & Name */}
+      <aside className="sticky top-0 inset-y-0 left-0 z-40 h-screen w-16 lg:w-[20vw] bg-card/50 flex-col hidden lg:flex">
+        {/* Logo */}
         <div className="p-4 border-b border-[var(--color-muted)]/30 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-            <img src={xplore} alt="Admin" className="h-full w-9/10" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+            <img src={xplore} alt="Admin" className="h-full w-9/10 object-contain" />
           </div>
-          <span className="text-lg font-bold text-[var(--color-text)]">
+          <span className="text-lg font-bold text-[var(--color-text)] truncate">
             Admin Panel
           </span>
         </div>
 
-        {/* Nav links */}
+        {/* Nav */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map(({ name, icon: Icon, href, dropdown }) => (
-            <div key={name} className="relative">
-              <NavLink
-                to={href}
-                onClick={() => dropdown && toggleDropdown(name)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer w-full ${
-                    isActive || openDropdowns[name]
-                      ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-semibold shadow-lg"
-                      : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:shadow-md"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                <span className="text-base font-medium flex-1">{name}</span>
-                {dropdown && (
-                  <div
-                    className={`transition-transform duration-200 ${
-                      openDropdowns[name] ? "rotate-180" : ""
-                    }`}
-                  >
-                    <ChevronDown size={18} />
-                  </div>
-                )}
-              </NavLink>
-
-              {/* Desktop Dropdown - SAME as Mobile (No border/bg) */}
-              {dropdown && openDropdowns[name] && (
-                <div className="pl-8 space-y-1 mt-2 border-l-2 border-[var(--color-primary)]/30">
-                  {dropdown.map(({ name: subName, href: subHref }) => (
-                    <NavLink
-                      key={subName}
-                      to={subHref}
-                      onClick={closeAllDropdowns}
-                      className={({ isActive }) =>
-                        `block px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                          location.pathname === subHref
-                            ? "bg-[var(--color-primary)]/30 text-[var(--color-primary)] font-medium"
-                            : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/20 hover:text-[var(--color-primary)]"
-                        }`
-                      }
-                    >
-                      {subName}
-                    </NavLink>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          <NavItems onLinkClick={undefined} />
         </nav>
 
-        {/* Bottom logout */}
+        {/* Logout */}
         <div className="p-3 border-t border-[var(--color-muted)]/30">
           <button
             onClick={() => setShowLogoutConfirm(true)}
@@ -289,22 +325,21 @@ export const AdminSidebar = () => {
         </div>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <>
-          {/* Overlay backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
             onClick={closeMobileMenu}
+            aria-hidden="true"
           />
 
-          {/* Mobile Sidebar */}
-          <div className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm bg-card/95 backdrop-blur-2xl shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden">
+          <div className="fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm bg-card/95 backdrop-blur-2xl shadow-2xl flex flex-col lg:hidden">
             {/* Mobile Header */}
-            <div className="p-6 border-b border-[var(--color-muted)]/30 flex items-center justify-between">
+            <div className="p-6 border-b border-[var(--color-muted)]/30 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                  <img src={xplore} alt="Admin" className="h-full w-9/10" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                  <img src={xplore} alt="Admin" className="h-full w-9/10 object-contain" />
                 </div>
                 <span className="text-xl font-bold text-[var(--color-text)]">
                   Admin Panel
@@ -313,6 +348,7 @@ export const AdminSidebar = () => {
               <button
                 onClick={closeMobileMenu}
                 className="p-2 rounded-xl text-text hover:bg-[var(--color-muted)]/20 transition-all duration-200"
+                aria-label="Close navigation menu"
               >
                 <X size={20} />
               </button>
@@ -320,56 +356,11 @@ export const AdminSidebar = () => {
 
             {/* Mobile Nav */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              {navItems.map(({ name, icon: Icon, href, dropdown }) => (
-                <div key={name}>
-                  <div
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer w-full ${
-                      location.pathname === href
-                        ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-semibold shadow-lg"
-                        : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:shadow-md"
-                    }`}
-                    onClick={() => dropdown && toggleDropdown(name)}
-                  >
-                    <Icon size={20} />
-                    <span className="text-base font-medium flex-1">{name}</span>
-                    {dropdown && (
-                      <div
-                        className={`transition-transform duration-200 ${
-                          openDropdowns[name] ? "rotate-180" : ""
-                        }`}
-                      >
-                        <ChevronDown size={18} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mobile Dropdown - IDENTICAL to Desktop now */}
-                  {dropdown && openDropdowns[name] && (
-                    <div className="pl-8 space-y-1 mt-2 border-l-2 border-[var(--color-primary)]/30">
-                      {dropdown.map(({ name: subName, href: subHref }) => (
-                        <NavLink
-                          key={subName}
-                          to={subHref}
-                          onClick={closeMobileMenu}
-                          className={({ isActive }) =>
-                            `block px-3 py-1.5 text-sm rounded-lg transition-all duration-200 ${
-                              isActive
-                                ? "bg-[var(--color-primary)]/30 text-[var(--color-primary)] font-semibold"
-                                : "text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/20 hover:text-[var(--color-primary)]"
-                            }`
-                          }
-                        >
-                          {subName}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              <NavItems onLinkClick={closeMobileMenu} />
             </nav>
 
             {/* Mobile Logout */}
-            <div className="p-4 border-t border-[var(--color-muted)]/30 mt-4">
+            <div className="p-4 border-t border-[var(--color-muted)]/30 shrink-0">
               <button
                 onClick={() => {
                   setShowLogoutConfirm(true);
@@ -397,8 +388,8 @@ export const AdminSidebar = () => {
                 Confirm Logout
               </h2>
               <p className="text-[var(--color-text-muted)] mb-6">
-                Are you sure you want to logout, <strong>{user.name}</strong>?
-                You'll need to login again.
+                Are you sure you want to logout,{" "}
+                <strong>{user.name}</strong>? You'll need to login again.
               </p>
             </div>
 

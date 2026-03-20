@@ -9,8 +9,8 @@ const router = express.Router();
 router.post("/login", adminLogin);
 router.get("/meta",authMiddleware, adminOnly, getAdminMetaData);
 
-router.post("/send-otp", sendOtpController);
-router.post("/verify-otp", verifyOtpController);
+// router.post("/send-otp", sendOtpController);
+// router.post("/verify-otp", verifyOtpController);
 
 router.post("/approve/:id", authMiddleware, superAdminOnly, approveController);
 router.post("/reject/:id", authMiddleware, superAdminOnly, rejectController);

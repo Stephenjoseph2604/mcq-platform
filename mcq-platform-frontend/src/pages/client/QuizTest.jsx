@@ -20,7 +20,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getUser } from "../../utils/auth";
 import Loader from "../../components/Loader";
 import DotGrid from "../../components/DotGrid";
-
+import useAntiCheat from "../../hooks/useAntiCheat";
+import AntiCheatWarning from "../../components/AntiCheatWarning";
 // const quizData = {
 //   attemptId: 3,
 //   questions: [
@@ -261,7 +262,7 @@ const QuizTest = () => {
           throw new Error("Student ID not found. Please login again.");
         }
 
-        console.log(`Starting quiz ${quizId} for student ${user.id}`);
+        // console.log(`Starting quiz ${quizId} for student ${user.id}`);
 
         const response = await quizAPI.startQuiz(quizId, user.id);
 
@@ -299,7 +300,6 @@ const QuizTest = () => {
 
   useEffect(() => {
     if (quizData?.remainingTimeSeconds) {
-      console.log(`🎯 Backend timer set: ${quizData.remainingTimeSeconds}s`);
       setTimeLeft(quizData.remainingTimeSeconds); // Sets 494!
     }
   }, [quizData?.remainingTimeSeconds]);
@@ -310,7 +310,7 @@ const QuizTest = () => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSubmit();
+          autoSubmit();
           return 0;
         }
         return prev - 1;
@@ -451,91 +451,67 @@ const QuizTest = () => {
       setIsSubmitted(false); // Re-enable UI on error
     }
   };
-  // const hasShownBackAlert = useRef(false);
-  // const hasShownVisibilityAlert = useRef(false);
-  // const hasShownMinimizeAlert = useRef(false);
+  const autoSubmit = async () => {
+    if (!attemptId) {
+      alert("Invalid attempt ID");
+      return;
+    }
 
-  // const handleBackButton = useCallback((event) => {
-  //   event.preventDefault();
-  //   if (!hasShownBackAlert.current) {
-  //     alert('Cannot go back! Complete your quiz first.');
-  //     hasShownBackAlert.current = true;
-  //   }
-  //   window.history.pushState(null, document.title, window.location.href);
-  // }, []);
+    // // ✅ CHECK IF ALL QUESTIONS HAVE ANSWERS
+    // const answeredCount = Object.keys(answers).length;
 
-  // // COMBINED DETECTION - Catches EVERYTHING
-  // const handlePageVisibility = useCallback(() => {
-  //   if (document.hidden && !hasShownVisibilityAlert.current) {
-  //     alert('Please keep this tab active to complete your quiz!');
-  //     hasShownVisibilityAlert.current = true;
-  //   } else if (!document.hidden) {
-  //     hasShownVisibilityAlert.current = false;
-  //   }
-  // }, []);
+    // if (answeredCount !== questions.length) {
+    //   alert(
+    //     `Please attend all ${questions.length} questions!\n\n` +
+    //       `Answered: ${answeredCount} / ${questions.length}`,
+    //   );
+    //   return;
+    // }
 
-  // // FIXED MINIMIZE DETECTION - Multiple layers
-  // const handleWindowStateChange = useCallback(() => {
-  //   // Check if window is truly minimized/invisible
-  //   const isMinimized = !document.hasFocus() && document.hidden;
+    try {
+      setIsSubmitted(true); // Optimistic update - disable UI immediately
 
-  //   if (isMinimized && !hasShownMinimizeAlert.current) {
-  //     alert('Please keep browser window active and visible!');
-  //     hasShownMinimizeAlert.current = true;
-  //   }
-  // }, []);
+      const submitData = {
+        attempt_id: attemptId,
+        answers: Object.entries(answers).map(
+          ([questionId, selectedOption]) => ({
+            questionId: parseInt(questionId),
+            selectedOption,
+          }),
+        ),
+      };
 
-  // // ULTRA-RELIABLE MINIMIZE DETECTION
-  // const handleWindowBlur = useCallback(() => {
-  //   // Double-check with multiple conditions
-  //   const isLikelyMinimized =
-  //     !document.hasFocus() ||
-  //     document.hidden ||
-  //     (window.innerWidth === 0 || window.innerHeight === 0);
+      console.log("SUBMIT JSON:", JSON.stringify(submitData, null, 2));
 
-  //   if (isLikelyMinimized && !hasShownMinimizeAlert.current) {
-  //     alert('Browser minimized detected! Please keep window active.');
-  //     hasShownMinimizeAlert.current = true;
-  //   }
-  // }, []);
+      // ✅ CALL SUBMIT API
+      const response = await quizAPI.submitQuiz(submitData);
 
-  // const handleWindowFocus = useCallback(() => {
-  //   // Reset all alerts when user returns
-  //   hasShownMinimizeAlert.current = false;
-  //   hasShownVisibilityAlert.current = false;
-  // }, []);
+      if (response.data.success) {
+        console.log("✅ Submit response:", response.data);
+        // Optionally navigate to results page
+        // navigate(`/quiz/${encryptedQuizId}/results`);
+      } else {
+        throw new Error(response.data.message || "Submit failed");
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error(error.response?.data?.message || "Failed to submit quiz");
+      setIsSubmitted(false); // Re-enable UI on error
+    }
+  };
+  // cheat Detection
+  const {
+    violations,
+    showWarning,
+    violationType,
+    dismissWarning,
+    remainingWarnings,
+  } = useAntiCheat({
+    onForceSubmit: autoSubmit,
+    maxViolations: 3,
+    enabled: !loading && !isSubmitted && !quizAlreadySubmitted && !!quizData,
+  });
 
-  // useEffect(() => {
-  //   // Back button
-  //   window.history.pushState(null, '', window.location.href);
-  //   window.addEventListener('popstate', handleBackButton);
-
-  //   // Tab switching
-  //   document.addEventListener('visibilitychange', handlePageVisibility);
-
-  //   // Minimize detection - TRIPLE PROTECTION
-  //   window.addEventListener('blur', handleWindowBlur);
-  //   window.addEventListener('focus', handleWindowFocus);
-  //   document.addEventListener('visibilitychange', handleWindowStateChange);
-
-  //   // Polling backup for stubborn browsers (runs every 500ms)
-  //   const checkMinimizeInterval = setInterval(() => {
-  //     if (!document.hasFocus() && document.hidden && !hasShownMinimizeAlert.current) {
-  //       alert('Window not active! Please keep browser visible.');
-  //       hasShownMinimizeAlert.current = true;
-  //     }
-  //   }, 500);
-
-  //   return () => {
-  //     window.removeEventListener('popstate', handleBackButton);
-  //     document.removeEventListener('visibilitychange', handlePageVisibility);
-  //     document.removeEventListener('visibilitychange', handleWindowStateChange);
-  //     window.removeEventListener('blur', handleWindowBlur);
-  //     window.removeEventListener('focus', handleWindowFocus);
-  //     clearInterval(checkMinimizeInterval);
-  //   };
-  // }, [handleBackButton, handlePageVisibility, handleWindowBlur, handleWindowStateChange, handleWindowFocus]);
-  // ✅ NEW: Already submitted UI
   if (quizAlreadySubmitted) {
     return (
       <div className="min-h-screen bg-bg/50 pt-20 flex items-center justify-center px-4">
@@ -622,6 +598,15 @@ const QuizTest = () => {
     <div className="min-h-screen bg-transparent pt-20 px-4 sm:px-6 lg:px-8 relative">
       {/* Dot Grid Background */}
       <DotGrid />
+      {showWarning && (
+        <AntiCheatWarning
+          violations={violations}
+          remainingWarnings={remainingWarnings}
+          violationType={violationType}
+          onDismiss={dismissWarning}
+          maxViolations={3}
+        />
+      )}
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-7 pb-10 items-stretch">
         {/* Left: Question Area */}
         <div className="flex-1 lg:max-w-5xl">

@@ -208,7 +208,7 @@ export const questionsAPI = {
     const config = {
       params: { category_id: categoryId },
     };
-    console.log(departmentId);
+    
     // For technical category, send department_id in body
 
     return api.get(`/questions/category/${categoryId}`, {
