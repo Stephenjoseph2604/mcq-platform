@@ -1,30 +1,31 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import Login from "./pages/client/Login";
-import Register from "./pages/client/Register";
+import Login from "./features/quiz/pages/client/Login";
+import Register from "./features/quiz/pages/client/Register";
 import Navbar from "./components/Navbar";
-import QuizPage from "./pages/client/QuizPage";
+import QuizPage from "./features/quiz/pages/client/QuizPage";
 // import QuizTest from "./pages/client/QuizTest";
 // import { AdminSidebar } from "./pages/server/AdminSidebar";
-import { AdminLayout } from "./pages/server/AdminLayout";
-import { AdminDashboard } from "./pages/server/AdminDashboard";
-import { AdminQuizPage } from "./pages/server/AdminQuizPage";
-import { AdminReport } from "./pages/server/AdminReport";
-import { SettingsPage } from "./pages/server/SettingsPage";
-import { StudentsManagement } from "./pages/server/StudentsManagement";
-import Home from "./pages/client/Home";
+import { AdminLayout } from "./features/quiz/pages/server/AdminLayout";
+import { AdminDashboard } from "./features/quiz/pages/server/AdminDashboard";
+import { AdminQuizPage } from "./features/quiz/pages/server/AdminQuizPage";
+import { AdminReport } from "./features/quiz/pages/server/AdminReport";
+import { SettingsPage } from "./features/quiz/pages/server/SettingsPage";
+import { StudentsManagement } from "./features/quiz/pages/server/StudentsManagement";
+import Home from "./features/quiz/pages/client/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./components/NotFound";
-import QuizTest from "./pages/client/QuizTest";
-import AdminLogin from "./pages/server/AdminLogin";
+import QuizTest from "./features/quiz/pages/client/QuizTest";
+import AdminLogin from "./features/quiz/pages/server/AdminLogin";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
-import { LoadQuestions } from "./pages/server/LoadQuestions";
-import Problems from "./pages/client/Problems";
-import CodeEditorApp from "./pages/client/CodeEditorApp";
-import AdminRegister from "./pages/server/AdminRegister";
-import EmployeeRegistration from "./pages/server/EmployeeRegistration";
-import AdminRequests from "./pages/server/AdminRequests";
-import Employees from "./pages/server/Employees";
+import { LoadQuestions } from "./features/quiz/pages/server/LoadQuestions";
+import Problems from "./features/quiz/pages/client/Problems";
+import CodeEditorApp from "./features/quiz/pages/client/CodeEditorApp";
+// import AdminRegister from "./features/quiz/pages/server/AdminRegister";
+import EmployeeRegistration from "./features/quiz/pages/server/EmployeeRegistration";
+import AdminRequests from "./features/quiz/pages/server/AdminRequests";
+import Employees from "./features/quiz/pages/server/Employees";
+import CRMDashboard from "./features/quiz/components/Crmdashboard";
 
 const App = () => {
   return (
@@ -33,12 +34,14 @@ const App = () => {
       <QuizPage />
       <QuizTest/> */}
       <Routes>
+       
         <Route path="/admin/*" element={<AdminLayout />}>
           <Route
             path="dashboard"
             element={
               <AdminProtectedRoute>
                 <AdminDashboard />
+                 {/* <CRMDashboard/> */}
               </AdminProtectedRoute>
             }
           />
@@ -64,7 +67,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
-          path="/quiz/:encryptedQuizId"
+          path="/quiz/:encryptedQuizCode"
           element={
             <ProtectedRoute>
               <QuizTest />

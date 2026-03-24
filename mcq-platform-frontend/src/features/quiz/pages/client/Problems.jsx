@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Play, Bookmark, Clock, Tag, BookOpen, AlertCircle } from 'lucide-react';
-import DotGrid from '../../components/DotGrid'; 
-import FloatingParticles from '../../components/FloatingParticles';
+import DotGrid from '../../../../components/DotGrid'; 
+import FloatingParticles from '../../../../components/FloatingParticles';
 
 const dummyProblems = [
   {

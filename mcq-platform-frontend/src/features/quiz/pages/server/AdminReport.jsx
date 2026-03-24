@@ -14,13 +14,14 @@ import {
   ChevronUp,
   Trash2,
 } from "lucide-react";
-import { reportAPI } from "../../services/api";
-import { generateQuizReportExcel } from "../../utils/excelGenerator";
-import AdminHeader from "../../components/AdminHeader";
-import Loader from "../../components/Loader";
+import { reportAPI } from "../../../../services/api";
+import { generateQuizReportExcel } from "../../../../utils/excelGenerator";
+import AdminHeader from "../../../../components/AdminHeader";
+import Loader from "../../../../components/Loader";
 import ReportQuizGrid from "./components/ReportQuizGrid";
 import ReportQuizSubmissions from "./components/ReportQuizSubmissions";
 import ReportStudentDetails from "./components/ReportStudentDetails";
+import ReportStudentFullDetails from "./components/ReportStudentFullDetails";
 
 const sampleQuizzes = [
   {
@@ -123,6 +124,9 @@ export const AdminReport = () => {
   const [currentQuizId, setCurrentQuizId] = useState(null); // ✅ NEW: Track quiz ID
   const lastQuizIdRef = useRef(null); // ✅ NEW: Prevent duplicates
 
+  // ✅ NEW — tracks which student/quiz to show in the full report view
+  const [fullReportTarget, setFullReportTarget] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -223,6 +227,7 @@ export const AdminReport = () => {
       const response = await reportAPI.getQuizzes();
 
       if (response.data?.success) {
+        
         // Transform API response to match your component expectations
         const transformedQuizzes = response.data.data.map((quiz) => ({
           id: quiz.id,
@@ -249,8 +254,7 @@ export const AdminReport = () => {
       setReportLoading(true);
       const response = await reportAPI.getQuizReport(quizId);
       if (response.data?.success) {
-        console.log(response.data.data);
-        
+
         setQuizReport(response.data.data);
       }
     } catch (error) {
@@ -334,7 +338,7 @@ export const AdminReport = () => {
         />
       )}
 
-      {/* Student Details */}
+      {/* Student Summary (existing) */}
       {view === "student" && selectedStudent && (
         <ReportStudentDetails
           quizReport={quizReport}
@@ -342,6 +346,21 @@ export const AdminReport = () => {
           setView={setView}
           reportLoading={reportLoading}
           formatDuration={formatDuration}
+          // ✅ NEW — wires up the "View full breakdown" button
+          onViewFullReport={({ quizId, studentId, studentName }) => {
+            setFullReportTarget({ quizId, studentId, studentName });
+            setView("fullReport");
+          }}
+        />
+      )}
+
+      {/* ✅ NEW — Full question-by-question breakdown */}
+      {view === "fullReport" && fullReportTarget && (
+        <ReportStudentFullDetails
+          quizId={fullReportTarget.quizId}
+          studentId={fullReportTarget.studentId}
+          studentName={fullReportTarget.studentName}
+          onBack={() => setView("student")} // goes back to summary
         />
       )}
     </div>

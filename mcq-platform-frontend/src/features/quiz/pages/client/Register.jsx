@@ -12,8 +12,8 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import { authAPI, departmentAPI } from "../../services/api"; // Import both APIs
-import DotGrid from "../../components/DotGrid";
+import { authAPI, departmentAPI } from "../../../../services/api"; // Import both APIs
+import DotGrid from "../../../../components/DotGrid";
 
 const Register = () => {
   const navigate = useNavigate();

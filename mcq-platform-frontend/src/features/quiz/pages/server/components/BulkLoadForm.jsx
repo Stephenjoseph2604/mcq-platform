@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Download, Plus, Trash2, Upload, Copy, FileJson } from "lucide-react";
-import { categoriesAPI, departmentAPI, questionsAPI } from "../../services/api";
+import { categoriesAPI, departmentAPI, questionsAPI } from "../../../../../services/api";
 
 const BulkLoadForm = ({ onLoadQuestions, onCancel, onSuccess }) => {
   const [categories, setCategories] = useState([]);
@@ -137,10 +137,28 @@ const BulkLoadForm = ({ onLoadQuestions, onCancel, onSuccess }) => {
       console.log("Submitting bulk load data:", loadData);
       // Call bulk API
       const response = await questionsAPI.bulkUpload(loadData);
-      console.log(response);
+      // console.log(response);
 
       if (response.data.success) {
         alert(`Successfully uploaded ${validQuestions.length} questions!`);
+        setBulkForm({
+          category_id: "",
+          department_id: "",
+          questionsJson: "",
+          questions: [],
+          typedQuestions: [
+            {
+              id: 1,
+              question_text: "",
+              option_a: "",
+              option_b: "",
+              option_c: "",
+              option_d: "",
+              correct_option: "",
+            },
+          ],
+        })
+
       } else {
         const errorData = response.data;
         alert(`Failed to upload: ${errorData.message || "Please try again"}`);

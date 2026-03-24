@@ -9,8 +9,8 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import { authAPI } from "../../services/api";
-import DotGrid from "../../components/DotGrid";
+import { authAPI } from "../../../../services/api";
+import DotGrid from "../../../../components/DotGrid";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,9 +48,9 @@ const Login = () => {
 
       if (response.data.success) {
         // Store token and user data in localStorage
-        localStorage.setItem("mcqtoken", response.data.data.token);
+        localStorage.setItem("crmusertoken123", response.data.data.token);
         localStorage.setItem(
-          "mcquser",
+          "crmuserdata123",
           JSON.stringify(response.data.data.user),
         );
 

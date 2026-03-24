@@ -9,9 +9,9 @@ import {
   Edit,
   UserPlus,
 } from "lucide-react";
-import AdminHeader from "../../components/AdminHeader";
-import { categoriesAPI, departmentAPI } from "../../services/api";
-import Loader from "../../components/Loader";
+import AdminHeader from "../../../../components/AdminHeader";
+import { categoriesAPI, departmentAPI } from "../../../../services/api";
+import Loader from "../../../../components/Loader";
 
 const initialAdmins = [
   {

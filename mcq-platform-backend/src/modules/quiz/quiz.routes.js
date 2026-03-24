@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createQuiz, updateQuiz,startQuiz,submitQuiz,studentQuizReport ,allStudentsQuizReport, getAllQuizList, getAllQuizzesWithSubmissions, deleteQuizSubmissionReport, getQuizFullSubmissionReport} from "./quiz.controller.js";
+import { createQuiz, updateQuiz,startQuiz,submitQuiz,studentQuizReport ,allStudentsQuizReport, getAllQuizList, getAllQuizzesWithSubmissions, deleteQuizSubmissionReport, getQuizFullSubmissionReport, getQuizFullSubmissionReportForStudent, deleteQuiz} from "./quiz.controller.js";
 
 import { adminOnly } from "../../middlewares/admin.middleware.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, adminOnly, createQuiz);
 router.put("/:quizId", authMiddleware, adminOnly, updateQuiz);
+router.delete("/:quizId", authMiddleware, superAdminOnly, deleteQuiz);
 router.get("/",authMiddleware, getAllQuizList);
 router.get("/:quizId/student/:userId/start",authMiddleware, startQuiz);
 
@@ -18,6 +19,8 @@ router.get("/quizzes",authMiddleware, adminOnly, getAllQuizzesWithSubmissions);
 
 // router.get("/report/:quizId",authMiddleware, adminOnly, allStudentsQuizReport);
 router.get("/report/full/:quizId",authMiddleware, adminOnly, getQuizFullSubmissionReport);
+
+router.get("/report/full/:quizId/:studentId",authMiddleware, adminOnly, getQuizFullSubmissionReportForStudent);
 
 // router.get("/report/:quizId/:studentId",authMiddleware, adminOnly, studentQuizReport); 
 

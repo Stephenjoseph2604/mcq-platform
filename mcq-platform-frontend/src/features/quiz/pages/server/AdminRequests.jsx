@@ -8,8 +8,8 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
-import { adminAPI } from "../../services/api";
-import AdminHeader from "../../components/AdminHeader";
+import { adminAPI } from "../../../../services/api.js";
+import AdminHeader from "../../../../components/AdminHeader";
 
 const AdminRequests = () => {
   const [loading, setLoading] = useState(false);

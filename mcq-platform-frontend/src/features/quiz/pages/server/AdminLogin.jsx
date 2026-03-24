@@ -8,8 +8,8 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
-import { authAPI } from "../../services/api";
-import DotGrid from "../../components/DotGrid";
+import { authAPI } from "../../../../services/api";
+import DotGrid from "../../../../components/DotGrid";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -46,9 +46,9 @@ const AdminLogin = () => {
       const response = await authAPI.adminLogin(formData);
 
       if (response.data.success) {
-        localStorage.setItem("mcqadmintoken", response.data.message.token);
+        localStorage.setItem("crmusertoken123", response.data.message.token);
         localStorage.setItem(
-          "mcqadmin",
+          "crmuserdata123",
           JSON.stringify(response.data.message.admin),
         );
 

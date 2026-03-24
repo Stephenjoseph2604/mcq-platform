@@ -7,8 +7,8 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-import DotGrid from "../../components/DotGrid";
-import FloatingParticles from "../../components/FloatingParticles";
+import DotGrid from "../../../../components/DotGrid";
+import FloatingParticles from "../../../../components/FloatingParticles";
 
 
 const Home = () => {

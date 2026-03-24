@@ -9,11 +9,12 @@ import {
   Key,
   AlertCircle,
   CheckCircle,
+  Users2,
 } from "lucide-react";
-import { authAPI } from "../../services/api";
-import DotGrid from "../../components/DotGrid";
+import { adminAPI } from "../../../../services/api.js";
+import DotGrid from "../../../../components/DotGrid";
 
-const AdminRegister = () => {
+const EmployeeRegistration = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -23,8 +24,11 @@ const AdminRegister = () => {
     email: "",
     password: "",
     confirm_password: "",
+    role: "TRAINER", // Default role
     otp: "",
   });
+
+  const roles = [ "TRAINER", "PO", "SALES", "HR"];
 
   // Clear message after 5 seconds
   React.useEffect(() => {
@@ -41,13 +45,12 @@ const AdminRegister = () => {
     }
   };
 
- 
   const handleSendOtp = async (e) => {
     e.preventDefault();
 
     // Validation
-    if (!formData.email || !formData.name) {
-      setMessage({ type: "error", text: "Please fill name and email!" });
+    if (!formData.email || !formData.name || !formData.role) {
+      setMessage({ type: "error", text: "Please fill name, email, and select role!" });
       return;
     }
 
@@ -97,6 +100,10 @@ const AdminRegister = () => {
       setMessage({ type: "error", text: "Please enter valid 6-digit OTP!" });
       return;
     }
+    if (!formData.role) {
+      setMessage({ type: "error", text: "Please select a role!" });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -104,8 +111,8 @@ const AdminRegister = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
+        role: formData.role,
         otp: formData.otp,
-        role:'ADMIN'
       };
 
       const response = await authAPI.adminVerifyOtp(registerData);
@@ -113,7 +120,7 @@ const AdminRegister = () => {
       if (response.data.success) {
         setMessage({
           type: "success",
-          text: "Admin registration successful! Redirecting to login...",
+          text: `${formData.role} registration successful! Redirecting to login...`,
         });
         setTimeout(() => navigate("/admin/login"), 2000);
       } else {
@@ -138,7 +145,7 @@ const AdminRegister = () => {
       <DotGrid />
       {/* Admin Badge */}
       <div className="absolute top-6 right-6 bg-[var(--color-primary)]/90 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg border border-white/20">
-        ADMIN REGISTER
+        EMPLOYEE REGISTER
       </div>
       <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
         <div className="w-full max-w-md bg-[var(--color-card)]/50 border border-[var(--color-muted)]/50 rounded-2xl p-8 shadow-xl">
@@ -166,16 +173,16 @@ const AdminRegister = () => {
               <Shield className="h-10 w-10 text-[var(--color-primary)]" />
             </div>
             <h1 className="text-3xl font-bold text-[var(--color-text)] mb-2">
-              {step === 1 ? "Admin Registration" : "Verify Admin OTP"}
+              {step === 1 ? "Employee Registration" : "Verify Role OTP"}
             </h1>
             <p className="text-[var(--color-text-muted)] text-sm">
               {step === 1
-                ? "Complete admin account setup"
+                ? "Complete account setup with role selection"
                 : "Enter 6-digit code sent to your email"}
             </p>
           </div>
 
-          {/* Step 1: Admin Form */}
+          {/* Step 1: Registration Form */}
           {step === 1 ? (
             <form onSubmit={handleSendOtp} className="space-y-6">
               {/* Name */}
@@ -211,10 +218,34 @@ const AdminRegister = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full h-12 pl-12 pr-4 border-2 border-[var(--color-muted)]/50 rounded-xl text-sm bg-[var(--color-card)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all hover:border-[var(--color-secondary)]/70 disabled:opacity-50"
-                    placeholder="admin@exam.com"
+                    placeholder="user@exam.com"
                     required
                     disabled={loading}
                   />
+                </div>
+              </div>
+
+              {/* Role Selection */}
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-[var(--color-text-muted)]">
+                  Role
+                </label>
+                <div className="relative">
+                  <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-secondary)] pointer-events-none" />
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="w-full h-12 pl-12 pr-4 border-2 border-[var(--color-muted)]/50 rounded-xl text-sm bg-[var(--color-card)] text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all hover:border-[var(--color-secondary)]/70 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  >
+                    {roles.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -272,7 +303,7 @@ const AdminRegister = () => {
                 ) : (
                   <>
                     <Shield className="h-4 w-4" />
-                    Send Admin OTP
+                    Send Role OTP
                   </>
                 )}
               </button>
@@ -282,7 +313,7 @@ const AdminRegister = () => {
             <form onSubmit={handleVerifyOtp} className="space-y-8">
               <div className="space-y-3">
                 <label className="block text-xs font-medium text-[var(--color-text-muted)]">
-                  Enter 6-digit Admin OTP
+                  Enter 6-digit Role OTP
                 </label>
                 <div className="relative">
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-secondary)] pointer-events-none" />
@@ -300,6 +331,14 @@ const AdminRegister = () => {
                 </div>
               </div>
 
+              {/* Role Display in OTP step */}
+              <div className="p-4 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 rounded-xl text-center">
+                <p className="text-sm text-[var(--color-text-muted)] mb-1">Registering as:</p>
+                <p className="font-bold text-lg text-[var(--color-primary)] tracking-wide">
+                  {formData.role}
+                </p>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -308,12 +347,12 @@ const AdminRegister = () => {
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-[var(--color-text)]/30 border-t-[var(--color-text)] rounded-full animate-spin" />
-                    Verifying Admin...
+                    Verifying {formData.role}...
                   </>
                 ) : (
                   <>
                     <ArrowRight className="h-4 w-4" />
-                    Register Admin Account
+                    Register {formData.role} Account
                   </>
                 )}
               </button>
@@ -323,12 +362,12 @@ const AdminRegister = () => {
           {/* Footer */}
           <div className="text-center mt-8 pt-6 border-t border-[var(--color-muted)]/30">
             <p className="text-[var(--color-text-muted)] text-sm">
-              {step === 1 ? "Already registered?" : "Return to admin login?"}{" "}
+              Already have an account?{" "}
               <Link
                 to="/admin/login"
                 className="text-[var(--color-primary)] font-medium hover:text-[var(--color-secondary)] hover:underline underline-offset-2 transition-colors duration-200"
               >
-                Go to Admin Login
+                Go to Login
               </Link>
             </p>
           </div>
@@ -338,4 +377,4 @@ const AdminRegister = () => {
   );
 };
 
-export default AdminRegister;
+export default EmployeeRegistration;

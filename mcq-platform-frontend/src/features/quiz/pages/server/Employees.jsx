@@ -9,8 +9,8 @@ import {
   Loader2,
   Users,
 } from "lucide-react";
-import { adminAPI } from "../../services/api";
-import AdminHeader from "../../components/AdminHeader.jsx";
+import { adminAPI } from "../../../../services/api.js";
+import AdminHeader from "../../../../components/AdminHeader.jsx";
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);

@@ -1,106 +1,12 @@
 import { useState, useEffect } from "react";
 import { BookOpen, CheckCircle, Plus } from "lucide-react";
-import BulkLoadForm from "./BulkLoadForm";
+import BulkLoadForm from "./components/BulkLoadForm";
 import QuestionsList from "./QuestionsList";
-import { questionsAPI } from "../../services/api";
-import AdminHeader from "../../components/AdminHeader";
+import { questionsAPI } from "../../../../services/api";
+import AdminHeader from "../../../../components/AdminHeader";
 
-const categories = [
-  { id: 1, name: "English", questionCount: 25 },
-  { id: 2, name: "Aptitude", questionCount: 30 },
-  { id: 3, name: "Logical", questionCount: 20 },
-  {
-    id: 4,
-    name: "Technical",
-    questionCount: 50,
-    departments: [
-      { id: 1, name: "CSE", code: "CSE" },
-      { id: 2, name: "ECE", code: "ECE" },
-      { id: 3, name: "MECH", code: "MECH" },
-    ],
-  },
-];
 
-// Sample questions data
-const sampleQuestionsData = {
-  1: [
-    // English
-    {
-      question_text: "Choose the correct synonym for 'Happy'",
-      option_a: "Sad",
-      option_b: "Joyful",
-      option_c: "Angry",
-      option_d: "Tired",
-      correct_option: "B",
-    },
-  ],
-  2: [
-    // Aptitude
-    {
-      question_text: "If 2 + 3 = 10, 7 + 2 = 63, 6 + 5 = 66, then 8 + 4 = ?",
-      option_a: "96",
-      option_b: "100",
-      option_c: "92",
-      option_d: "98",
-      correct_option: "A",
-    },
-  ],
-  3: [
-    // Logical
-    {
-      question_text: "Find the next number: 2, 4, 8, 16, ?",
-      option_a: "24",
-      option_b: "32",
-      option_c: "28",
-      option_d: "30",
-      correct_option: "B",
-    },
-  ],
-  4: {
-    // Technical - by department
-    1: [
-      // CSE
-      {
-        question_text: "What does CPU stand for?",
-        option_a: "Central Processing Unit",
-        option_b: "Computer Processing Unit",
-        option_c: "Central Programming Unit",
-        option_d: "Control Processing Unit",
-        correct_option: "A",
-      },
-      {
-        question_text: "Which data structure follows FIFO principle?",
-        option_a: "Stack",
-        option_b: "Queue",
-        option_c: "Tree",
-        option_d: "Graph",
-        correct_option: "B",
-      },
-    ],
-    2: [
-      // ECE
-      {
-        question_text: "What does LED stand for?",
-        option_a: "Light Emitting Diode",
-        option_b: "Laser Emitting Device",
-        option_c: "Light Energy Diode",
-        option_d: "Low Energy Device",
-        correct_option: "A",
-      },
-    ],
-    3: [
-      // MECH
-      {
-        question_text: "What is the unit of force?",
-        option_a: "Watt",
-        option_b: "Newton",
-        option_c: "Joule",
-        option_d: "Pascal",
-        correct_option: "B",
-      },
-    ],
-  },
-};
+
 
 export const LoadQuestions = () => {
   const [activeTab, setActiveTab] = useState("categories");
@@ -132,7 +38,7 @@ export const LoadQuestions = () => {
   }, []);
 
   const loadCategoryQuestions = async () => {
-    if (selectedCategory?.id === 4 && !selectedDepartment) {
+    if (selectedCategory?.name === 'Technical' && !selectedDepartment) {
       alert("Please select a department for Technical category");
       return;
     }
@@ -203,7 +109,7 @@ export const LoadQuestions = () => {
   };
 
   const departments =
-    selectedCategory?.id === 4 ? selectedCategory.departments || [] : [];
+    selectedCategory?.name === 'Technical' ? selectedCategory.departments || [] : [];
 
   if (loadingCategories) {
     return (
@@ -316,7 +222,7 @@ export const LoadQuestions = () => {
               </div>
 
               {/* Department selector for Technical */}
-              {category.id === 4 && selectedCategory?.id === category.id && (
+              {category.name === "Technical" && selectedCategory?.id === category.id && (
                 <div className="mt-4 pt-3 sm:pt-4 border-t border-[var(--color-muted)]/15">
                   <select
                     value={selectedDepartment?.department_id || ""}

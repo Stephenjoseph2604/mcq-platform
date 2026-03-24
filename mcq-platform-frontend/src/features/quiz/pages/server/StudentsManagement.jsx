@@ -15,9 +15,9 @@ import {
   Hash,
   Users,
 } from "lucide-react";
-import AdminHeader from "../../components/AdminHeader";
-import { departmentAPI, studentAPI } from "../../services/api";
-import Loader from "../../components/Loader";
+import AdminHeader from "../../../../components/AdminHeader";
+import { departmentAPI, studentAPI } from "../../../../services/api";
+import Loader from "../../../../components/Loader";
 
 // const sampleStudents = [
 //   {

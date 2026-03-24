@@ -1,8 +1,8 @@
 // AdminLayout.jsx
 import { Outlet } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
-import DotGrid from "../../components/DotGrid";
-import FloatingParticles from "../../components/FloatingParticles";
+import DotGrid from "../../../../components/DotGrid";
+import FloatingParticles from "../../../../components/FloatingParticles";
 // import { SettingsPage } from "./SettingsPage";
 // import { AdminQuizPage } from "./AdminQuizPage";
 // import { LoadQuestions } from "./LoadQuestions";

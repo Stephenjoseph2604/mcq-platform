@@ -83,7 +83,8 @@ export const login = async ({ email, password }) => {
       name: user.name,
       email: user.email,
       mobile: user.mobile,
-      department: user.department
+      department: user.department,
+      role:'STUDENT'
     }
   };
 };
